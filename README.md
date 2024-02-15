@@ -1,11 +1,20 @@
 # justshare
 
-Build shared context with you and your homies.
+share things with people
 
-[![justshare Demo](docs/assets/images/demo.png)](https://www.youtube.com/live/UoRi3Fqh6Jg?si=CQVxzNWAqL6KOMa1&t=268 "justshare Demo")
+## Overview
 
-### Library 
-- To use justshare as a Go library, refer to the [documentation](https://pkg.go.dev/github.com/justshare-io/justshare) (Note: This code is still like pre-alpha, so the API is subject to change)
+### Find or make a thing.
+You want to share some*thing* with someone. It could be a file, a link, a note, or another thing.
+
+### Share it with people.
+You want to share it with someone. You could share it with a friend, a group of friends, or the whole world. You want to put a *thing* in a *place*. heh.
+
+### Control who gets to see it.
+You want to control who gets to see it. Just for you. Just for your friends. Just for your friends and their friends. Just for the whole world.
+
+### Your thing is valuable.
+You want to know who sees it. You want to know who likes it. You want to know who shares it. You want to know who comments on it. You want to know who makes a copy of it. You want to know who makes a derivative of it. You want to know who makes a derivative of a derivative of it. You want to know who makes a derivative of a derivative of a derivative of it. You want to know who makes a derivative of a derivative of a derivative of a derivative of it. 
 
 ## License
 

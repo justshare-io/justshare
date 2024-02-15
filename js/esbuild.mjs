@@ -30,6 +30,7 @@ const baseOptions = {
         ".html": "copy",
         ".json": "copy",
         ".ico": "copy",
+        ".wasm": "copy",
     },
     plugins: [
         // TODO breadchris use swc over tsc
@@ -111,25 +112,23 @@ async function doBuild(target, options, port) {
     }
 }
 
+const siteEntrypoints = [
+    "./site/index.tsx",
+    "./site/styles/globals.css",
+    "./site/favicon.ico",
+    "./site/index.html",
+    './site/go.wasm',
+]
+
 await Promise.all([
     buildSite && doBuild('site', {
         ...baseOptions,
-        entryPoints: [
-            "./site/index.tsx",
-            "./site/styles/globals.css",
-            "./site/favicon.ico",
-            "./site/index.html",
-        ],
+        entryPoints: siteEntrypoints,
         outdir: `${buildDir}/site/`,
     }, 8001),
     buildStream && doBuild('stream', {
         ...baseOptions,
-        entryPoints: [
-            "./site/index.tsx",
-            "./site/styles/globals.css",
-            "./site/favicon.ico",
-            "./site/index.html",
-        ],
+        entryPoints: siteEntrypoints,
         outdir: `${buildDir}/stream/`,
     }, 9001),
     buildExtension && doBuild('extension', {
