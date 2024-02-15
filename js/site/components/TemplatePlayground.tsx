@@ -166,14 +166,6 @@ export const TemplatePlayground: React.FC<PlaygroundProps> = ({ wasm }) => {
                 <div className="form-group">
                     <label>Configuration</label>
                     <div className="form-inline">
-                        <button
-                            type="submit"
-                            className="btn btn-primary"
-                            disabled={state.autoRender}
-                            onClick={updateRendered}
-                        >
-                            Render
-                        </button>
                         <div className="custom-control custom-switch ml-3">
                             <input
                                 type="checkbox"
