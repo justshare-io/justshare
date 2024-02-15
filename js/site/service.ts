@@ -5,6 +5,7 @@ import {ChatService} from "@/rpc/chat/chat_connect";
 import {EventService} from "@/rpc/event/event_connect";
 import {createConnectTransport} from "@connectrpc/connect-web";
 import {createPromiseClient} from "@connectrpc/connect";
+import {KubesService} from "@/rpc/kubes/kubes_connect";
 
 export const baseURL = process.env.BASE_URL;
 
@@ -18,3 +19,4 @@ export const contentService = createPromiseClient(ContentService, transport);
 export const userService = createPromiseClient(UserService, transport);
 export const chatService = createPromiseClient(ChatService, transport);
 export const eventService = createPromiseClient(EventService, transport);
+export const kubesService = createPromiseClient(KubesService, transport);

@@ -26,6 +26,24 @@ public protocol Kubes_KubesServiceClientInterface: Sendable {
 
     @available(iOS 13, *)
     func `deleteDeployment`(request: Kubes_DeleteDeploymentRequest, headers: Connect.Headers) async -> ResponseMessage<Kubes_DeleteDeploymentResponse>
+
+    @discardableResult
+    func `newIngress`(request: Kubes_NewIngressRequest, headers: Connect.Headers, completion: @escaping @Sendable (ResponseMessage<Kubes_NewIngressResponse>) -> Void) -> Connect.Cancelable
+
+    @available(iOS 13, *)
+    func `newIngress`(request: Kubes_NewIngressRequest, headers: Connect.Headers) async -> ResponseMessage<Kubes_NewIngressResponse>
+
+    @discardableResult
+    func `updateDeployment`(request: Kubes_UpdateDeploymentRequest, headers: Connect.Headers, completion: @escaping @Sendable (ResponseMessage<Kubes_UpdateDeploymentResponse>) -> Void) -> Connect.Cancelable
+
+    @available(iOS 13, *)
+    func `updateDeployment`(request: Kubes_UpdateDeploymentRequest, headers: Connect.Headers) async -> ResponseMessage<Kubes_UpdateDeploymentResponse>
+
+    @discardableResult
+    func `buildImage`(request: Kubes_BuildImageRequest, headers: Connect.Headers, completion: @escaping @Sendable (ResponseMessage<Kubes_BuildImageResponse>) -> Void) -> Connect.Cancelable
+
+    @available(iOS 13, *)
+    func `buildImage`(request: Kubes_BuildImageRequest, headers: Connect.Headers) async -> ResponseMessage<Kubes_BuildImageResponse>
 }
 
 /// Concrete implementation of `Kubes_KubesServiceClientInterface`.
@@ -66,11 +84,44 @@ public final class Kubes_KubesServiceClient: Kubes_KubesServiceClientInterface, 
         return await self.client.unary(path: "/kubes.KubesService/DeleteDeployment", request: request, headers: headers)
     }
 
+    @discardableResult
+    public func `newIngress`(request: Kubes_NewIngressRequest, headers: Connect.Headers = [:], completion: @escaping @Sendable (ResponseMessage<Kubes_NewIngressResponse>) -> Void) -> Connect.Cancelable {
+        return self.client.unary(path: "/kubes.KubesService/NewIngress", request: request, headers: headers, completion: completion)
+    }
+
+    @available(iOS 13, *)
+    public func `newIngress`(request: Kubes_NewIngressRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<Kubes_NewIngressResponse> {
+        return await self.client.unary(path: "/kubes.KubesService/NewIngress", request: request, headers: headers)
+    }
+
+    @discardableResult
+    public func `updateDeployment`(request: Kubes_UpdateDeploymentRequest, headers: Connect.Headers = [:], completion: @escaping @Sendable (ResponseMessage<Kubes_UpdateDeploymentResponse>) -> Void) -> Connect.Cancelable {
+        return self.client.unary(path: "/kubes.KubesService/UpdateDeployment", request: request, headers: headers, completion: completion)
+    }
+
+    @available(iOS 13, *)
+    public func `updateDeployment`(request: Kubes_UpdateDeploymentRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<Kubes_UpdateDeploymentResponse> {
+        return await self.client.unary(path: "/kubes.KubesService/UpdateDeployment", request: request, headers: headers)
+    }
+
+    @discardableResult
+    public func `buildImage`(request: Kubes_BuildImageRequest, headers: Connect.Headers = [:], completion: @escaping @Sendable (ResponseMessage<Kubes_BuildImageResponse>) -> Void) -> Connect.Cancelable {
+        return self.client.unary(path: "/kubes.KubesService/BuildImage", request: request, headers: headers, completion: completion)
+    }
+
+    @available(iOS 13, *)
+    public func `buildImage`(request: Kubes_BuildImageRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<Kubes_BuildImageResponse> {
+        return await self.client.unary(path: "/kubes.KubesService/BuildImage", request: request, headers: headers)
+    }
+
     public enum Metadata {
         public enum Methods {
             public static let listDeployments = Connect.MethodSpec(name: "ListDeployments", service: "kubes.KubesService", type: .unary)
             public static let newDeployment = Connect.MethodSpec(name: "NewDeployment", service: "kubes.KubesService", type: .unary)
             public static let deleteDeployment = Connect.MethodSpec(name: "DeleteDeployment", service: "kubes.KubesService", type: .unary)
+            public static let newIngress = Connect.MethodSpec(name: "NewIngress", service: "kubes.KubesService", type: .unary)
+            public static let updateDeployment = Connect.MethodSpec(name: "UpdateDeployment", service: "kubes.KubesService", type: .unary)
+            public static let buildImage = Connect.MethodSpec(name: "BuildImage", service: "kubes.KubesService", type: .unary)
         }
     }
 }

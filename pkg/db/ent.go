@@ -8,12 +8,21 @@ import (
 	"github.com/justshare-io/justshare/pkg/ent/migrate"
 	"log/slog"
 	"os"
+	"path"
 )
 
 func NewEnt(c Config) (*ent.Client, error) {
 	logFn := func(params ...any) {
 		slog.Debug("ent", params)
 	}
+
+	dir, _ := path.Split(c.DSN)
+	if dir != "" {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return nil, err
+		}
+	}
+
 	// TODO breadchris this should depend on a bucket config and the dsn changes based on the bucket config
 	var lsdb *litestream.DB
 	if c.BackupsEnabled {
@@ -31,7 +40,8 @@ func NewEnt(c Config) (*ent.Client, error) {
 
 	client, err := ent.Open(
 		c.Type,
-		c.DSN,
+		// TODO breadchris this should be done with url parsing
+		c.DSN+"?_fk=1",
 		ent.Log(logFn),
 		ent.Debug(),
 	)

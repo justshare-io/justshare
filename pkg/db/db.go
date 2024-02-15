@@ -41,7 +41,7 @@ func NewGorm(c Config) (*gorm.DB, error) {
 				return nil, err
 			}
 		}
-		openedDb = sqlite.Open(c.DSN)
+		openedDb = sqlite.Open(c.DSN + "?_fk=1")
 	}
 
 	db, err := gorm.Open(openedDb, &gorm.Config{

@@ -42,6 +42,13 @@ const (
 	// KubesServiceDeleteDeploymentProcedure is the fully-qualified name of the KubesService's
 	// DeleteDeployment RPC.
 	KubesServiceDeleteDeploymentProcedure = "/kubes.KubesService/DeleteDeployment"
+	// KubesServiceNewIngressProcedure is the fully-qualified name of the KubesService's NewIngress RPC.
+	KubesServiceNewIngressProcedure = "/kubes.KubesService/NewIngress"
+	// KubesServiceUpdateDeploymentProcedure is the fully-qualified name of the KubesService's
+	// UpdateDeployment RPC.
+	KubesServiceUpdateDeploymentProcedure = "/kubes.KubesService/UpdateDeployment"
+	// KubesServiceBuildImageProcedure is the fully-qualified name of the KubesService's BuildImage RPC.
+	KubesServiceBuildImageProcedure = "/kubes.KubesService/BuildImage"
 )
 
 // KubesServiceClient is a client for the kubes.KubesService service.
@@ -49,6 +56,9 @@ type KubesServiceClient interface {
 	ListDeployments(context.Context, *connect_go.Request[kubes.ListDeploymentsRequest]) (*connect_go.Response[kubes.ListDeploymentsResponse], error)
 	NewDeployment(context.Context, *connect_go.Request[kubes.NewDeploymentRequest]) (*connect_go.Response[kubes.NewDeploymentResponse], error)
 	DeleteDeployment(context.Context, *connect_go.Request[kubes.DeleteDeploymentRequest]) (*connect_go.Response[kubes.DeleteDeploymentResponse], error)
+	NewIngress(context.Context, *connect_go.Request[kubes.NewIngressRequest]) (*connect_go.Response[kubes.NewIngressResponse], error)
+	UpdateDeployment(context.Context, *connect_go.Request[kubes.UpdateDeploymentRequest]) (*connect_go.Response[kubes.UpdateDeploymentResponse], error)
+	BuildImage(context.Context, *connect_go.Request[kubes.BuildImageRequest]) (*connect_go.Response[kubes.BuildImageResponse], error)
 }
 
 // NewKubesServiceClient constructs a client for the kubes.KubesService service. By default, it uses
@@ -76,6 +86,21 @@ func NewKubesServiceClient(httpClient connect_go.HTTPClient, baseURL string, opt
 			baseURL+KubesServiceDeleteDeploymentProcedure,
 			opts...,
 		),
+		newIngress: connect_go.NewClient[kubes.NewIngressRequest, kubes.NewIngressResponse](
+			httpClient,
+			baseURL+KubesServiceNewIngressProcedure,
+			opts...,
+		),
+		updateDeployment: connect_go.NewClient[kubes.UpdateDeploymentRequest, kubes.UpdateDeploymentResponse](
+			httpClient,
+			baseURL+KubesServiceUpdateDeploymentProcedure,
+			opts...,
+		),
+		buildImage: connect_go.NewClient[kubes.BuildImageRequest, kubes.BuildImageResponse](
+			httpClient,
+			baseURL+KubesServiceBuildImageProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -84,6 +109,9 @@ type kubesServiceClient struct {
 	listDeployments  *connect_go.Client[kubes.ListDeploymentsRequest, kubes.ListDeploymentsResponse]
 	newDeployment    *connect_go.Client[kubes.NewDeploymentRequest, kubes.NewDeploymentResponse]
 	deleteDeployment *connect_go.Client[kubes.DeleteDeploymentRequest, kubes.DeleteDeploymentResponse]
+	newIngress       *connect_go.Client[kubes.NewIngressRequest, kubes.NewIngressResponse]
+	updateDeployment *connect_go.Client[kubes.UpdateDeploymentRequest, kubes.UpdateDeploymentResponse]
+	buildImage       *connect_go.Client[kubes.BuildImageRequest, kubes.BuildImageResponse]
 }
 
 // ListDeployments calls kubes.KubesService.ListDeployments.
@@ -101,11 +129,29 @@ func (c *kubesServiceClient) DeleteDeployment(ctx context.Context, req *connect_
 	return c.deleteDeployment.CallUnary(ctx, req)
 }
 
+// NewIngress calls kubes.KubesService.NewIngress.
+func (c *kubesServiceClient) NewIngress(ctx context.Context, req *connect_go.Request[kubes.NewIngressRequest]) (*connect_go.Response[kubes.NewIngressResponse], error) {
+	return c.newIngress.CallUnary(ctx, req)
+}
+
+// UpdateDeployment calls kubes.KubesService.UpdateDeployment.
+func (c *kubesServiceClient) UpdateDeployment(ctx context.Context, req *connect_go.Request[kubes.UpdateDeploymentRequest]) (*connect_go.Response[kubes.UpdateDeploymentResponse], error) {
+	return c.updateDeployment.CallUnary(ctx, req)
+}
+
+// BuildImage calls kubes.KubesService.BuildImage.
+func (c *kubesServiceClient) BuildImage(ctx context.Context, req *connect_go.Request[kubes.BuildImageRequest]) (*connect_go.Response[kubes.BuildImageResponse], error) {
+	return c.buildImage.CallUnary(ctx, req)
+}
+
 // KubesServiceHandler is an implementation of the kubes.KubesService service.
 type KubesServiceHandler interface {
 	ListDeployments(context.Context, *connect_go.Request[kubes.ListDeploymentsRequest]) (*connect_go.Response[kubes.ListDeploymentsResponse], error)
 	NewDeployment(context.Context, *connect_go.Request[kubes.NewDeploymentRequest]) (*connect_go.Response[kubes.NewDeploymentResponse], error)
 	DeleteDeployment(context.Context, *connect_go.Request[kubes.DeleteDeploymentRequest]) (*connect_go.Response[kubes.DeleteDeploymentResponse], error)
+	NewIngress(context.Context, *connect_go.Request[kubes.NewIngressRequest]) (*connect_go.Response[kubes.NewIngressResponse], error)
+	UpdateDeployment(context.Context, *connect_go.Request[kubes.UpdateDeploymentRequest]) (*connect_go.Response[kubes.UpdateDeploymentResponse], error)
+	BuildImage(context.Context, *connect_go.Request[kubes.BuildImageRequest]) (*connect_go.Response[kubes.BuildImageResponse], error)
 }
 
 // NewKubesServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -129,6 +175,21 @@ func NewKubesServiceHandler(svc KubesServiceHandler, opts ...connect_go.HandlerO
 		svc.DeleteDeployment,
 		opts...,
 	)
+	kubesServiceNewIngressHandler := connect_go.NewUnaryHandler(
+		KubesServiceNewIngressProcedure,
+		svc.NewIngress,
+		opts...,
+	)
+	kubesServiceUpdateDeploymentHandler := connect_go.NewUnaryHandler(
+		KubesServiceUpdateDeploymentProcedure,
+		svc.UpdateDeployment,
+		opts...,
+	)
+	kubesServiceBuildImageHandler := connect_go.NewUnaryHandler(
+		KubesServiceBuildImageProcedure,
+		svc.BuildImage,
+		opts...,
+	)
 	return "/kubes.KubesService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case KubesServiceListDeploymentsProcedure:
@@ -137,6 +198,12 @@ func NewKubesServiceHandler(svc KubesServiceHandler, opts ...connect_go.HandlerO
 			kubesServiceNewDeploymentHandler.ServeHTTP(w, r)
 		case KubesServiceDeleteDeploymentProcedure:
 			kubesServiceDeleteDeploymentHandler.ServeHTTP(w, r)
+		case KubesServiceNewIngressProcedure:
+			kubesServiceNewIngressHandler.ServeHTTP(w, r)
+		case KubesServiceUpdateDeploymentProcedure:
+			kubesServiceUpdateDeploymentHandler.ServeHTTP(w, r)
+		case KubesServiceBuildImageProcedure:
+			kubesServiceBuildImageHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -156,4 +223,16 @@ func (UnimplementedKubesServiceHandler) NewDeployment(context.Context, *connect_
 
 func (UnimplementedKubesServiceHandler) DeleteDeployment(context.Context, *connect_go.Request[kubes.DeleteDeploymentRequest]) (*connect_go.Response[kubes.DeleteDeploymentResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("kubes.KubesService.DeleteDeployment is not implemented"))
+}
+
+func (UnimplementedKubesServiceHandler) NewIngress(context.Context, *connect_go.Request[kubes.NewIngressRequest]) (*connect_go.Response[kubes.NewIngressResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("kubes.KubesService.NewIngress is not implemented"))
+}
+
+func (UnimplementedKubesServiceHandler) UpdateDeployment(context.Context, *connect_go.Request[kubes.UpdateDeploymentRequest]) (*connect_go.Response[kubes.UpdateDeploymentResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("kubes.KubesService.UpdateDeployment is not implemented"))
+}
+
+func (UnimplementedKubesServiceHandler) BuildImage(context.Context, *connect_go.Request[kubes.BuildImageRequest]) (*connect_go.Response[kubes.BuildImageResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("kubes.KubesService.BuildImage is not implemented"))
 }

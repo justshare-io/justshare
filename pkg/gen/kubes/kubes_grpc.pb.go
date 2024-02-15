@@ -25,6 +25,9 @@ type KubesServiceClient interface {
 	ListDeployments(ctx context.Context, in *ListDeploymentsRequest, opts ...grpc.CallOption) (*ListDeploymentsResponse, error)
 	NewDeployment(ctx context.Context, in *NewDeploymentRequest, opts ...grpc.CallOption) (*NewDeploymentResponse, error)
 	DeleteDeployment(ctx context.Context, in *DeleteDeploymentRequest, opts ...grpc.CallOption) (*DeleteDeploymentResponse, error)
+	NewIngress(ctx context.Context, in *NewIngressRequest, opts ...grpc.CallOption) (*NewIngressResponse, error)
+	UpdateDeployment(ctx context.Context, in *UpdateDeploymentRequest, opts ...grpc.CallOption) (*UpdateDeploymentResponse, error)
+	BuildImage(ctx context.Context, in *BuildImageRequest, opts ...grpc.CallOption) (*BuildImageResponse, error)
 }
 
 type kubesServiceClient struct {
@@ -62,6 +65,33 @@ func (c *kubesServiceClient) DeleteDeployment(ctx context.Context, in *DeleteDep
 	return out, nil
 }
 
+func (c *kubesServiceClient) NewIngress(ctx context.Context, in *NewIngressRequest, opts ...grpc.CallOption) (*NewIngressResponse, error) {
+	out := new(NewIngressResponse)
+	err := c.cc.Invoke(ctx, "/kubes.KubesService/NewIngress", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubesServiceClient) UpdateDeployment(ctx context.Context, in *UpdateDeploymentRequest, opts ...grpc.CallOption) (*UpdateDeploymentResponse, error) {
+	out := new(UpdateDeploymentResponse)
+	err := c.cc.Invoke(ctx, "/kubes.KubesService/UpdateDeployment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kubesServiceClient) BuildImage(ctx context.Context, in *BuildImageRequest, opts ...grpc.CallOption) (*BuildImageResponse, error) {
+	out := new(BuildImageResponse)
+	err := c.cc.Invoke(ctx, "/kubes.KubesService/BuildImage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KubesServiceServer is the server API for KubesService service.
 // All implementations should embed UnimplementedKubesServiceServer
 // for forward compatibility
@@ -69,6 +99,9 @@ type KubesServiceServer interface {
 	ListDeployments(context.Context, *ListDeploymentsRequest) (*ListDeploymentsResponse, error)
 	NewDeployment(context.Context, *NewDeploymentRequest) (*NewDeploymentResponse, error)
 	DeleteDeployment(context.Context, *DeleteDeploymentRequest) (*DeleteDeploymentResponse, error)
+	NewIngress(context.Context, *NewIngressRequest) (*NewIngressResponse, error)
+	UpdateDeployment(context.Context, *UpdateDeploymentRequest) (*UpdateDeploymentResponse, error)
+	BuildImage(context.Context, *BuildImageRequest) (*BuildImageResponse, error)
 }
 
 // UnimplementedKubesServiceServer should be embedded to have forward compatible implementations.
@@ -83,6 +116,15 @@ func (UnimplementedKubesServiceServer) NewDeployment(context.Context, *NewDeploy
 }
 func (UnimplementedKubesServiceServer) DeleteDeployment(context.Context, *DeleteDeploymentRequest) (*DeleteDeploymentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDeployment not implemented")
+}
+func (UnimplementedKubesServiceServer) NewIngress(context.Context, *NewIngressRequest) (*NewIngressResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NewIngress not implemented")
+}
+func (UnimplementedKubesServiceServer) UpdateDeployment(context.Context, *UpdateDeploymentRequest) (*UpdateDeploymentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDeployment not implemented")
+}
+func (UnimplementedKubesServiceServer) BuildImage(context.Context, *BuildImageRequest) (*BuildImageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BuildImage not implemented")
 }
 
 // UnsafeKubesServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -150,6 +192,60 @@ func _KubesService_DeleteDeployment_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KubesService_NewIngress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NewIngressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubesServiceServer).NewIngress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kubes.KubesService/NewIngress",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubesServiceServer).NewIngress(ctx, req.(*NewIngressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubesService_UpdateDeployment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDeploymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubesServiceServer).UpdateDeployment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kubes.KubesService/UpdateDeployment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubesServiceServer).UpdateDeployment(ctx, req.(*UpdateDeploymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KubesService_BuildImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BuildImageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KubesServiceServer).BuildImage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kubes.KubesService/BuildImage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KubesServiceServer).BuildImage(ctx, req.(*BuildImageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // KubesService_ServiceDesc is the grpc.ServiceDesc for KubesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -168,6 +264,18 @@ var KubesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteDeployment",
 			Handler:    _KubesService_DeleteDeployment_Handler,
+		},
+		{
+			MethodName: "NewIngress",
+			Handler:    _KubesService_NewIngress_Handler,
+		},
+		{
+			MethodName: "UpdateDeployment",
+			Handler:    _KubesService_UpdateDeployment_Handler,
+		},
+		{
+			MethodName: "BuildImage",
+			Handler:    _KubesService_BuildImage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

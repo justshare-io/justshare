@@ -4,8 +4,9 @@ import {Content, TypesResponse} from "@/rpc/content/content_pb";
 import {cleanObject} from "@/util/form";
 import {Provider, useAtom} from "jotai";
 import {useForm} from "react-hook-form";
+import {Deploy} from "@/deploy/Deploy";
 
-const tabs = ["ui"] as const;
+const tabs = ["deploy", "ui"] as const;
 type Tab = typeof tabs[number];
 
 export const Admin: React.FC = () => {
@@ -21,7 +22,7 @@ export const Admin: React.FC = () => {
                         {tabs.map((t) => (
                             <li key={t}>
                                 <a
-                                    className={`btn btn-ghost ${t === activeTab ? 'btn-active' : ''}`}
+                                    className={`${t === activeTab ? 'btn-active' : ''}`}
                                     onClick={() => setActiveTab(t)}
                                 >
                                     {t}
@@ -40,6 +41,8 @@ const TabDisplay: React.FC<{tab: Tab}> = ({tab}) => {
     switch (tab) {
         case "ui":
             return <UI />;
+        case "deploy":
+            return <Deploy />;
     }
 }
 

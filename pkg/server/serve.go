@@ -16,9 +16,11 @@ import (
 	"github.com/justshare-io/justshare/pkg/gen/chat/chatconnect"
 	"github.com/justshare-io/justshare/pkg/gen/content/contentconnect"
 	"github.com/justshare-io/justshare/pkg/gen/event/eventconnect"
+	"github.com/justshare-io/justshare/pkg/gen/kubes/kubesconnect"
 	"github.com/justshare-io/justshare/pkg/gen/user/userconnect"
 	"github.com/justshare-io/justshare/pkg/group"
 	shttp "github.com/justshare-io/justshare/pkg/http"
+	"github.com/justshare-io/justshare/pkg/kubes"
 	"github.com/justshare-io/justshare/pkg/user"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
@@ -41,6 +43,7 @@ type APIHTTPServer struct {
 	userService    *user.Service
 	chatService    *chat.Service
 	eventService   *event.Service
+	kubesService   *kubes.Service
 	handler        *gothic.Handler
 }
 
@@ -50,6 +53,7 @@ var (
 		group.ProviderSet,
 		user.ProviderSet,
 		chat.ProviderSet,
+		kubes.ProviderSet,
 		normalize.New,
 		shttp.NewSession,
 		content.NewConfig,
@@ -66,6 +70,7 @@ func New(
 	userService *user.Service,
 	chatService *chat.Service,
 	eventService *event.Service,
+	kubesService *kubes.Service,
 ) *APIHTTPServer {
 	return &APIHTTPServer{
 		config:         config,
@@ -75,6 +80,7 @@ func New(
 		userService:    userService,
 		chatService:    chatService,
 		eventService:   eventService,
+		kubesService:   kubesService,
 		handler: gothic.NewHandler(
 			sessions.NewCookieStore([]byte(config.SessionSecret)),
 			gothic.WithProviders(
@@ -122,6 +128,8 @@ func (a *APIHTTPServer) handleGoogleCallback(w http.ResponseWriter, r *http.Requ
 func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 	interceptors := connect.WithInterceptors(NewLogInterceptor())
 
+	// TODO breadchris add authz interceptor
+
 	apiRoot := http.NewServeMux()
 
 	apiRoot.HandleFunc("/auth/google", a.startGoogleAuth)
@@ -132,11 +140,15 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 	apiRoot.Handle(userconnect.NewUserServiceHandler(a.userService, interceptors))
 	apiRoot.Handle(chatconnect.NewChatServiceHandler(a.chatService, interceptors))
 	apiRoot.Handle(eventconnect.NewEventServiceHandler(a.eventService, interceptors))
+	if a.kubesService != nil {
+		apiRoot.Handle(kubesconnect.NewKubesServiceHandler(a.kubesService, interceptors))
+	}
 	reflector := grpcreflect.NewStaticReflector(
 		"content.ContentService",
-		"user.Service",
+		"user.UserService",
 		"chat.ChatService",
-		"event.Service",
+		"event.EventService",
+		"kubes.KubesService",
 	)
 	recoverCall := func(_ context.Context, spec connect.Spec, _ http.Header, p any) error {
 		slog.Error("panic", "err", fmt.Sprintf("%+v", p))

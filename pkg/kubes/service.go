@@ -7,8 +7,10 @@ import (
 	"github.com/google/wire"
 	"github.com/justshare-io/justshare/pkg/gen/kubes"
 	"github.com/justshare-io/justshare/pkg/gen/kubes/kubesconnect"
+	"github.com/justshare-io/justshare/pkg/providers/openai"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -27,14 +29,17 @@ var ProviderSet = wire.NewSet(
 )
 
 type Service struct {
-	c         Config
+	c Config
+	// TODO breadchris process should load config from file
+	oc        openai.Config
 	clientSet *kubernetes.Clientset
 }
 
 var _ kubesconnect.KubesServiceHandler = (*Service)(nil)
 
-func New(c Config) (*Service, error) {
+func New(c Config, oc openai.Config) (*Service, error) {
 	if !c.Enabled {
+		slog.Warn("kubes service is disabled")
 		return nil, nil
 	}
 
@@ -53,8 +58,47 @@ func New(c Config) (*Service, error) {
 	}
 	return &Service{
 		c:         c,
+		oc:        oc,
 		clientSet: clientset,
 	}, nil
+}
+
+func (s *Service) BuildImage(ctx context.Context, c *connect.Request[kubes.BuildImageRequest]) (*connect.Response[kubes.BuildImageResponse], error) {
+	slog.Debug("building image", "dockerfile", c.Msg.Dockerfile, "image", c.Msg.Image)
+	taggedImage, err := BuildAndTagImage(c.Msg.Context, c.Msg.Dockerfile, c.Msg.Image)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&kubes.BuildImageResponse{
+		TaggedImage: taggedImage,
+	}), nil
+}
+
+// TODO breadchris check user
+func (s *Service) UpdateDeployment(ctx context.Context, c *connect.Request[kubes.UpdateDeploymentRequest]) (*connect.Response[kubes.UpdateDeploymentResponse], error) {
+	deployment, err := s.clientSet.AppsV1().Deployments(s.c.DefaultNamespace).Get(ctx, c.Msg.Name, metav1.GetOptions{})
+	if err != nil {
+		if kerrors.IsNotFound(err) {
+			return nil, fmt.Errorf("deployment %s in namespace %s not found", c.Msg.Name, s.c.DefaultNamespace)
+		}
+		return nil, fmt.Errorf("error getting deployment: %v", err)
+	}
+
+	container, err := addHashToImage("ghcr.io/justshare-io/justshare")
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO breadchris possibly multiple containers
+	for i := range deployment.Spec.Template.Spec.Containers {
+		deployment.Spec.Template.Spec.Containers[i].Image = container
+	}
+
+	_, err = s.clientSet.AppsV1().Deployments(s.c.DefaultNamespace).Update(ctx, deployment, metav1.UpdateOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update deployment: %v", err)
+	}
+	return connect.NewResponse(&kubes.UpdateDeploymentResponse{}), nil
 }
 
 func (s *Service) ListDeployments(ctx context.Context, c *connect.Request[kubes.ListDeploymentsRequest]) (*connect.Response[kubes.ListDeploymentsResponse], error) {
@@ -94,12 +138,15 @@ func isValidK8sServiceName(name string) bool {
 }
 
 func deploymentName(name string) string {
-	return fmt.Sprintf("%s-xctf", name)
+	return fmt.Sprintf("%s-justshare", name)
 }
 
 func hostName(name string) string {
+	if name == "" {
+		return "justshare.io"
+	}
 	// TODO breadchris make this domain configurable
-	return fmt.Sprintf("%s.nicek12.xctf.io", name)
+	return fmt.Sprintf("%s.justshare.io", name)
 }
 
 func serviceName(name string) string {
@@ -111,6 +158,7 @@ func (s *Service) NewDeployment(ctx context.Context, c *connect.Request[kubes.Ne
 	name := deploymentName(c.Msg.Name)
 	service := serviceName(name)
 	domain := hostName(name)
+	//imageName := "ghcr.io/justshare-io/justshare"
 	namespace := s.c.DefaultNamespace
 
 	if c.Msg.DomainName != "" {
@@ -134,8 +182,13 @@ func (s *Service) NewDeployment(ctx context.Context, c *connect.Request[kubes.Ne
 		return nil, err
 	}
 
+	//container, err := addHashToImage(imageName)
+	//if err != nil {
+	//	return nil, err
+	//}
+
 	slog.Debug("creating deployment", "name", name, "namespace", namespace, "image", s.c.Container)
-	_, err = s.newDeployment(ctx, namespace, NewXCtfDeployment(s.c.Container, name, configMapName, port))
+	_, err = s.newDeployment(ctx, namespace, NewDeployment(s.c.Container, name, configMapName, port, s.oc))
 	if err != nil {
 		return nil, err
 	}
@@ -177,6 +230,15 @@ func (s *Service) DeleteDeployment(ctx context.Context, c *connect.Request[kubes
 		return nil, err
 	}
 	return connect.NewResponse(&kubes.DeleteDeploymentResponse{}), nil
+}
+
+func (s *Service) NewIngress(ctx context.Context, c *connect.Request[kubes.NewIngressRequest]) (*connect.Response[kubes.NewIngressResponse], error) {
+	_, err := s.newIngress(ctx, s.c.DefaultNamespace, s.c.DefaultIngress)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&kubes.NewIngressResponse{}), nil
 }
 
 func createService(clientset *kubernetes.Clientset, serviceName, deploymentName, namespace string) error {
@@ -277,4 +339,39 @@ func (s *Service) removeIngressRule(ctx context.Context, namespace, ingressName,
 
 	_, err = s.clientSet.NetworkingV1().Ingresses(namespace).Update(ctx, ingress, metav1.UpdateOptions{})
 	return err
+}
+
+func (s *Service) newIngress(ctx context.Context, namespace, name string) (*networkingv1.Ingress, error) {
+	ingressClient := s.clientSet.NetworkingV1().Ingresses(namespace)
+	ingress := &networkingv1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+			Annotations: map[string]string{
+				"kubernetes.io/ingress.class":                 "nginx",
+				"nginx.ingress.kubernetes.io/ssl-redirect":    "true",
+				"kubernetes.io/ingress.global-static-ip-name": "34.125.64.174",
+				"cert-manager.io/cluster-issuer":              "letsencrypt-prod",
+				"acme.cert-manager.io/http01-edit-in-place":   "true",
+			},
+		},
+		Spec: networkingv1.IngressSpec{
+			TLS: []networkingv1.IngressTLS{
+				{
+					Hosts:      []string{},
+					SecretName: "ctfg-cert-secret",
+				},
+			},
+			// TODO breadchris this does not resolve to anything
+			DefaultBackend: &networkingv1.IngressBackend{
+				Service: &networkingv1.IngressServiceBackend{
+					Name: "default-service",
+					Port: networkingv1.ServiceBackendPort{
+						Number: 80,
+					},
+				},
+			},
+		},
+	}
+	return ingressClient.Create(ctx, ingress, metav1.CreateOptions{})
 }

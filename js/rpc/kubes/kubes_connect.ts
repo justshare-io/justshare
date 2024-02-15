@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { DeleteDeploymentRequest, DeleteDeploymentResponse, ListDeploymentsRequest, ListDeploymentsResponse, NewDeploymentRequest, NewDeploymentResponse } from "./kubes_pb.js";
+import { BuildImageRequest, BuildImageResponse, DeleteDeploymentRequest, DeleteDeploymentResponse, ListDeploymentsRequest, ListDeploymentsResponse, NewDeploymentRequest, NewDeploymentResponse, NewIngressRequest, NewIngressResponse, UpdateDeploymentRequest, UpdateDeploymentResponse } from "./kubes_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -37,6 +37,33 @@ export const KubesService = {
       name: "DeleteDeployment",
       I: DeleteDeploymentRequest,
       O: DeleteDeploymentResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc kubes.KubesService.NewIngress
+     */
+    newIngress: {
+      name: "NewIngress",
+      I: NewIngressRequest,
+      O: NewIngressResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc kubes.KubesService.UpdateDeployment
+     */
+    updateDeployment: {
+      name: "UpdateDeployment",
+      I: UpdateDeploymentRequest,
+      O: UpdateDeploymentResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc kubes.KubesService.BuildImage
+     */
+    buildImage: {
+      name: "BuildImage",
+      I: BuildImageRequest,
+      O: BuildImageResponse,
       kind: MethodKind.Unary,
     },
   }

@@ -2,13 +2,14 @@ package kubes
 
 import (
 	"fmt"
+	"github.com/justshare-io/justshare/pkg/providers/openai"
 	"github.com/justshare-io/justshare/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewXCtfDeployment(container, name, configMapName string, port int32) *appsv1.Deployment {
+func NewDeployment(container, name, configMapName string, port int32, oc openai.Config) *appsv1.Deployment {
 	mountDir := "/config"          // Directory where the file will be mounted
 	fileName := "gcs_account.json" // Name of the file in the ConfigMap
 	mountPath := fmt.Sprintf("%s/%s", mountDir, fileName)
@@ -64,7 +65,7 @@ func NewXCtfDeployment(container, name, configMapName string, port int32) *appsv
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:  "xctf",
+							Name:  "justshare",
 							Image: container,
 							Ports: []corev1.ContainerPort{
 								{
@@ -90,11 +91,15 @@ func NewXCtfDeployment(container, name, configMapName string, port int32) *appsv
 								},
 								{
 									Name:  "BUCKET",
-									Value: "xctf-backup",
+									Value: "justshare-backup",
 								},
 								{
 									Name:  "GOOGLE_APPLICATION_CREDENTIALS",
 									Value: mountPath,
+								},
+								{
+									Name:  "OPENAI_API_KEY",
+									Value: oc.APIKey,
 								},
 							},
 							VolumeMounts: volumeMounts,

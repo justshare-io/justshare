@@ -7,6 +7,240 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message kubes.BuildImageRequest
+ */
+export class BuildImageRequest extends Message<BuildImageRequest> {
+  /**
+   * @generated from field: string image = 1;
+   */
+  image = "";
+
+  /**
+   * @generated from field: string dockerfile = 2;
+   */
+  dockerfile = "";
+
+  /**
+   * @generated from field: string context = 3;
+   */
+  context = "";
+
+  constructor(data?: PartialMessage<BuildImageRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "kubes.BuildImageRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "image", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "dockerfile", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "context", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BuildImageRequest {
+    return new BuildImageRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BuildImageRequest {
+    return new BuildImageRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BuildImageRequest {
+    return new BuildImageRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BuildImageRequest | PlainMessage<BuildImageRequest> | undefined, b: BuildImageRequest | PlainMessage<BuildImageRequest> | undefined): boolean {
+    return proto3.util.equals(BuildImageRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message kubes.BuildImageResponse
+ */
+export class BuildImageResponse extends Message<BuildImageResponse> {
+  /**
+   * @generated from field: string tagged_image = 1;
+   */
+  taggedImage = "";
+
+  constructor(data?: PartialMessage<BuildImageResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "kubes.BuildImageResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "tagged_image", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BuildImageResponse {
+    return new BuildImageResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BuildImageResponse {
+    return new BuildImageResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BuildImageResponse {
+    return new BuildImageResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BuildImageResponse | PlainMessage<BuildImageResponse> | undefined, b: BuildImageResponse | PlainMessage<BuildImageResponse> | undefined): boolean {
+    return proto3.util.equals(BuildImageResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message kubes.UpdateDeploymentRequest
+ */
+export class UpdateDeploymentRequest extends Message<UpdateDeploymentRequest> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string image = 2;
+   */
+  image = "";
+
+  constructor(data?: PartialMessage<UpdateDeploymentRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "kubes.UpdateDeploymentRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "image", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateDeploymentRequest {
+    return new UpdateDeploymentRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateDeploymentRequest {
+    return new UpdateDeploymentRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateDeploymentRequest {
+    return new UpdateDeploymentRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UpdateDeploymentRequest | PlainMessage<UpdateDeploymentRequest> | undefined, b: UpdateDeploymentRequest | PlainMessage<UpdateDeploymentRequest> | undefined): boolean {
+    return proto3.util.equals(UpdateDeploymentRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message kubes.UpdateDeploymentResponse
+ */
+export class UpdateDeploymentResponse extends Message<UpdateDeploymentResponse> {
+  constructor(data?: PartialMessage<UpdateDeploymentResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "kubes.UpdateDeploymentResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateDeploymentResponse {
+    return new UpdateDeploymentResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateDeploymentResponse {
+    return new UpdateDeploymentResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateDeploymentResponse {
+    return new UpdateDeploymentResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UpdateDeploymentResponse | PlainMessage<UpdateDeploymentResponse> | undefined, b: UpdateDeploymentResponse | PlainMessage<UpdateDeploymentResponse> | undefined): boolean {
+    return proto3.util.equals(UpdateDeploymentResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message kubes.NewIngressRequest
+ */
+export class NewIngressRequest extends Message<NewIngressRequest> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string namespace = 2;
+   */
+  namespace = "";
+
+  constructor(data?: PartialMessage<NewIngressRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "kubes.NewIngressRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NewIngressRequest {
+    return new NewIngressRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NewIngressRequest {
+    return new NewIngressRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NewIngressRequest {
+    return new NewIngressRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: NewIngressRequest | PlainMessage<NewIngressRequest> | undefined, b: NewIngressRequest | PlainMessage<NewIngressRequest> | undefined): boolean {
+    return proto3.util.equals(NewIngressRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message kubes.NewIngressResponse
+ */
+export class NewIngressResponse extends Message<NewIngressResponse> {
+  constructor(data?: PartialMessage<NewIngressResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "kubes.NewIngressResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NewIngressResponse {
+    return new NewIngressResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NewIngressResponse {
+    return new NewIngressResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NewIngressResponse {
+    return new NewIngressResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: NewIngressResponse | PlainMessage<NewIngressResponse> | undefined, b: NewIngressResponse | PlainMessage<NewIngressResponse> | undefined): boolean {
+    return proto3.util.equals(NewIngressResponse, a, b);
+  }
+}
+
+/**
  * @generated from message kubes.DeleteDeploymentRequest
  */
 export class DeleteDeploymentRequest extends Message<DeleteDeploymentRequest> {

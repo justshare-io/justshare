@@ -5,6 +5,8 @@ import (
 	"github.com/justshare-io/justshare/pkg/content"
 	"github.com/justshare-io/justshare/pkg/db"
 	"github.com/justshare-io/justshare/pkg/event"
+	"github.com/justshare-io/justshare/pkg/kubes"
+	"github.com/justshare-io/justshare/pkg/log"
 	"github.com/justshare-io/justshare/pkg/providers/openai"
 	"github.com/justshare-io/justshare/pkg/providers/whisper"
 	"github.com/justshare-io/justshare/pkg/scrape"
@@ -30,6 +32,8 @@ type Config struct {
 	Whisper whisper.Config `yaml:"config"`
 	User    user.Config    `yaml:"user"`
 	Event   event.Config   `yaml:"event"`
+	Kubes   kubes.Config   `yaml:"kubes"`
+	Log     log.Config     `yaml:"log"`
 }
 
 func newDefaultConfig() Config {
@@ -44,6 +48,8 @@ func newDefaultConfig() Config {
 		Whisper: whisper.NewDefaultConfig(),
 		User:    user.DefaultConfig(),
 		Event:   event.DefaultConfig(),
+		Kubes:   kubes.NewDefaultConfig(),
+		Log:     log.NewDefaultConfig(),
 	}
 }
 

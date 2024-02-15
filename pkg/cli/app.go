@@ -22,6 +22,7 @@ func NewApp(
 		Action: NewServeAction(apiServer),
 		Commands: []*cli.Command{
 			NewServeCommand(apiServer),
+			NewDockerCommand(),
 		},
 	}
 }

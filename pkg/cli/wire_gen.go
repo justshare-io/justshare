@@ -17,6 +17,7 @@ import (
 	"github.com/justshare-io/justshare/pkg/event"
 	"github.com/justshare-io/justshare/pkg/group"
 	"github.com/justshare-io/justshare/pkg/http"
+	"github.com/justshare-io/justshare/pkg/kubes"
 	"github.com/justshare-io/justshare/pkg/log"
 	"github.com/justshare-io/justshare/pkg/providers/openai"
 	"github.com/justshare-io/justshare/pkg/providers/whisper"
@@ -95,7 +96,15 @@ func Wire() (*cli.App, error) {
 		return nil, err
 	}
 	eventService := event.NewService(sessionManager, eventEntStore, eventConfig)
-	apihttpServer := server.New(contentConfig, service, bucketBucket, sessionManager, userService, chatService, eventService)
+	kubesConfig, err := kubes.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	kubesService, err := kubes.New(kubesConfig, openaiConfig)
+	if err != nil {
+		return nil, err
+	}
+	apihttpServer := server.New(contentConfig, service, bucketBucket, sessionManager, userService, chatService, eventService, kubesService)
 	app := NewApp(logLog, apihttpServer)
 	return app, nil
 }

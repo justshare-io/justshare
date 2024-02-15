@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"github.com/justshare-io/justshare/pkg/bot"
+	"github.com/justshare-io/justshare/pkg/kubes"
 	"github.com/justshare-io/justshare/pkg/server"
 	"github.com/protoflow-labs/protoflow/pkg/util/reload"
 	"github.com/urfave/cli/v2"
@@ -90,26 +91,55 @@ func liveReload() error {
 	return reload.Reload(c)
 }
 
+func NewDockerCommand() *cli.Command {
+	return &cli.Command{
+		Name:  "docker",
+		Usage: "Docker commands",
+		Subcommands: []*cli.Command{
+			{
+				Name: "build",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "dockerfile",
+						Required: true,
+					},
+					&cli.StringFlag{
+						Name:     "image",
+						Required: true,
+					},
+					&cli.StringFlag{
+						Name:     "context",
+						Required: false,
+					},
+				},
+				Action: func(ctx *cli.Context) error {
+					dockerfilePath := ctx.String("dockerfile")
+					imageName := ctx.String("image")
+
+					ctxDir := "."
+					if ctx.IsSet("context") {
+						ctxDir = ctx.String("context")
+					}
+					img, err := kubes.BuildAndTagImage(ctxDir, dockerfilePath, imageName)
+					if err != nil {
+						return err
+					}
+
+					slog.Info("built image", "image", img)
+					return nil
+				},
+			},
+		},
+	}
+}
+
 func NewCollectCommand(
 	discordBot *bot.Discord,
-	hnBot *bot.HN,
 ) *cli.Command {
 	return &cli.Command{
 		Name:  "bot",
 		Usage: "Start a bot.",
 		Subcommands: []*cli.Command{
-			{
-				Name: "hn",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:     "user-id",
-						Required: true,
-					},
-				},
-				Action: func(ctx *cli.Context) error {
-					return hnBot.Collect(ctx.String("user-id"))
-				},
-			},
 			{
 				Name: "discord",
 				Flags: []cli.Flag{

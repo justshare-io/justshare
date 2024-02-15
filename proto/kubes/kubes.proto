@@ -6,7 +6,35 @@ service KubesService {
   rpc ListDeployments(ListDeploymentsRequest) returns (ListDeploymentsResponse);
   rpc NewDeployment(NewDeploymentRequest) returns (NewDeploymentResponse);
   rpc DeleteDeployment(DeleteDeploymentRequest) returns (DeleteDeploymentResponse);
+  rpc NewIngress(NewIngressRequest) returns (NewIngressResponse);
+  rpc UpdateDeployment(UpdateDeploymentRequest) returns (UpdateDeploymentResponse);
+  rpc BuildImage(BuildImageRequest) returns (BuildImageResponse);
 }
+
+message BuildImageRequest {
+  string image = 1;
+  string dockerfile = 2;
+  string context = 3;
+}
+
+message BuildImageResponse {
+  string tagged_image = 1;
+}
+
+message UpdateDeploymentRequest {
+  string name = 1;
+  string image = 2;
+}
+
+message UpdateDeploymentResponse {
+}
+
+message NewIngressRequest {
+  string name = 1;
+  string namespace = 2;
+}
+
+message NewIngressResponse {}
 
 message DeleteDeploymentRequest {
   string name = 1;
