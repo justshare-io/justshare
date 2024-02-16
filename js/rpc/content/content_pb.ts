@@ -1182,6 +1182,11 @@ export class Post extends Message<Post> {
    */
   draft = false;
 
+  /**
+   * @generated from field: string blocks = 7;
+   */
+  blocks = "";
+
   constructor(data?: PartialMessage<Post>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1195,6 +1200,7 @@ export class Post extends Message<Post> {
     { no: 3, name: "content", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "authors", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 6, name: "draft", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 7, name: "blocks", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Post {

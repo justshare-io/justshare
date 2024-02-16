@@ -3,3 +3,4 @@ python/env
 env
 node_modules
 Dockerfile
+irc

@@ -626,6 +626,8 @@ public struct Content_Post {
 
   public var draft: Bool = false
 
+  public var blocks: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -2397,6 +2399,7 @@ extension Content_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     3: .same(proto: "content"),
     4: .same(proto: "authors"),
     6: .same(proto: "draft"),
+    7: .same(proto: "blocks"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2410,6 +2413,7 @@ extension Content_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
       case 3: try { try decoder.decodeSingularStringField(value: &self.content) }()
       case 4: try { try decoder.decodeRepeatedStringField(value: &self.authors) }()
       case 6: try { try decoder.decodeSingularBoolField(value: &self.draft) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.blocks) }()
       default: break
       }
     }
@@ -2431,6 +2435,9 @@ extension Content_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     if self.draft != false {
       try visitor.visitSingularBoolField(value: self.draft, fieldNumber: 6)
     }
+    if !self.blocks.isEmpty {
+      try visitor.visitSingularStringField(value: self.blocks, fieldNumber: 7)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2440,6 +2447,7 @@ extension Content_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     if lhs.content != rhs.content {return false}
     if lhs.authors != rhs.authors {return false}
     if lhs.draft != rhs.draft {return false}
+    if lhs.blocks != rhs.blocks {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -1,12 +1,5 @@
 /// <reference path="../../../node_modules/highlight.js/types/index.d.ts" />
 import React, {FC, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useEditor, EditorContent, Editor, BubbleMenu, ReactNodeViewRenderer} from '@tiptap/react';
-import BulletList from '@tiptap/extension-bullet-list';
-import ListItem from '@tiptap/extension-list-item';
-import Text from '@tiptap/extension-text';
-import Paragraph from '@tiptap/extension-paragraph';
-import Document from "@tiptap/extension-document";
-import Image from "@tiptap/extension-image";
 import './editor.css';
 import {editorContent, useContentEditor, useSources, useVoice} from "@/source/state";
 import {Content, GRPCTypeInfo, Post, Section, Site, File} from "@/rpc/content/content_pb";
@@ -20,10 +13,7 @@ import {
 } from "@heroicons/react/24/outline";
 import {contentService, projectService} from "@/service";
 import toast from "react-hot-toast";
-import { RichTextLink } from './rich-text-links';
-import {AddTagBadge} from "@/tag/AddTagBadge";
 import {URLEditor} from "@/source/URLEditor";
-import History from '@tiptap/extension-history';
 import {Form, formControlAtom, useProtoForm} from "@/form/Form";
 import {Provider, useAtom} from "jotai";
 import {useForm} from "react-hook-form";
@@ -31,32 +21,31 @@ import {cleanObject} from "@/util/form";
 import {FileEditor} from "@/source/editors/FileEditor";
 import {SiteEditor} from "@/source/editors/SiteEditor";
 import {ChatGPTConversationEditor} from "@/source/editors/ChatGPTConversationEditor";
-import {Bold} from "@tiptap/extension-bold";
-import {Italic} from "@tiptap/extension-italic";
-import {Strike} from "@tiptap/extension-strike";
 import {ContentDrawer} from "@/source/ContentDrawer";
 import {postContent, siteContent, urlContent} from "../../extension/util";
-import {Blockquote} from "@tiptap/extension-blockquote";
-import {Heading} from "@tiptap/extension-heading";
-import {CodeBlock} from "@tiptap/extension-code-block";
-import {Code} from "@tiptap/extension-code";
 import css from 'highlight.js/lib/languages/css'
 import js from 'highlight.js/lib/languages/javascript'
 import ts from 'highlight.js/lib/languages/typescript'
 import html from 'highlight.js/lib/languages/xml'
 import go from 'highlight.js/lib/languages/go'
 import {createLowlight} from 'lowlight'
-import {CodeBlockLowlight} from "@tiptap/extension-code-block-lowlight";
-import {CodeBlockComponent} from "@/source/CodeBlockComponent";
-import {Dropcursor} from "@tiptap/extension-dropcursor";
 import {ResizeImage} from "@/source/ResizeImage";
 import {Splide, SplideSlide} from "@splidejs/react-splide";
 import '@splidejs/react-splide/css';
 import {Modal} from "@/components/modal";
 import {FilteredTagInput} from "@/tag/FilteredTagInput";
-import { BlockNoteEditor } from "@blocknote/core";
-import { BlockNoteView, useBlockNote } from "@blocknote/react";
+import {BlockNoteEditor, defaultBlockSchema, defaultBlockSpecs} from "@blocknote/core";
+import {
+    BlockNoteView,
+    FormattingToolbarPositioner, getDefaultReactSlashMenuItems,
+    HyperlinkToolbarPositioner, ImageToolbarPositioner, SideMenuPositioner,
+    SlashMenuPositioner,
+    useBlockNote
+} from "@blocknote/react";
 import "@blocknote/react/style.css";
+import {CommandMenu} from "@/components/CommandMenu";
+import {JustShareSideMenu} from "@/components/JustShareSideMenu";
+import {blockSchema, CodeBlock, insertCode} from "@/source/editors/CodeBlock";
 
 const lowlight = createLowlight();
 
@@ -82,6 +71,11 @@ export const ContentEditor: React.FC<{}> = ({}) => {
     const fc = useForm();
     const { setValue } = fc;
     const abortControllerRef = useRef<AbortController|undefined>(undefined);
+    const [state, setState] = useState<{
+        editor: { blocks: string, html: string, } | undefined
+    }>({
+        editor: undefined,
+    });
 
     const [relatedContent, setRelatedContent] = useState<string[]>([]);
 
@@ -97,6 +91,27 @@ export const ContentEditor: React.FC<{}> = ({}) => {
     }, []);
 
     useEffect(() => {
+        if (content && state.editor?.blocks) {
+            switch (content.type.case) {
+                case 'post':
+                    editContent(new Content({
+                        ...content,
+                        type: {
+                            case: 'post',
+                            value: {
+                                ...content.type.value,
+                                // TODO breadchris deprecate
+                                content: state.editor.html,
+                                ...state.editor,
+                            }
+                        }
+                    }));
+                    break;
+            }
+        }
+    }, [state.editor]);
+
+    useEffect(() => {
         // anytime the content changes outside of this editor, update the editor
         if (content) {
             setValue('data', content.toJson() as any);
@@ -104,15 +119,29 @@ export const ContentEditor: React.FC<{}> = ({}) => {
     }, [content]);
 
     const setEditorContent = (content: Content) => {
-        setTimeout(() => {
-            if (editor) {
-                editor.commands.setContent(getContent(content));
-            }
+        setTimeout(async () => {
+            const c = await getContent(content);
+            editor.replaceBlocks(editor.topLevelBlocks, c);
         });
     };
 
+    const getContent = async (c: Content) => {
+        switch (c.type.case) {
+            case 'post':
+                // TODO breadchris remove
+                if (c.type.value.content) {
+                    return await editor.tryParseHTMLToBlocks(c.type.value.content);
+                }
+                if (!c.type.value.blocks) {
+                    return [];
+                }
+                return JSON.parse(c.type.value.blocks);
+        }
+        return []
+    }
+
     useEffect(() => {
-        // handle editor updates independently since content will be updated every editor change
+        // TODO breadchris handle editor updates independently since content will be updated every editor change
         if (newContent) {
             if (content) {
                 setEditorContent(content);
@@ -171,10 +200,7 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                 const parts = exec.text?.split('\n');
                 if (parts) {
                     for (let i = 0; i < parts.length; i++) {
-                        editor?.chain().focus().insertContent(parts[i]).run();
-                        if (i < parts.length - 1) {
-                            editor?.chain().focus().enter().run();
-                        }
+                        // TODO breadchris
                     }
                 }
             }
@@ -185,73 +211,93 @@ export const ContentEditor: React.FC<{}> = ({}) => {
             abortControllerRef.current = undefined;
         }
     }
-    const blockNoteEditor: BlockNoteEditor = useBlockNote({});
 
-    // https://vikramthyagarajan.medium.com/how-to-build-a-notion-like-text-editor-in-react-and-tiptap-7f394c36ed9d
-    const editor = useEditor({
-        extensions: [
-            Document,
-            Paragraph,
-            Blockquote,
-            Heading,
-            Code,
-            ResizeImage,
-            Dropcursor,
-            CodeBlockLowlight
-                .extend({
-                    addNodeView() {
-                        return ReactNodeViewRenderer(CodeBlockComponent)
-                    },
-                })
-                .configure({ lowlight }),
-            Text,
-            BulletList,
-            ListItem,
-            RichTextLink,
-            Bold,
-            Italic,
-            Strike,
-            History.configure({
-                depth: 100,
-            }),
-        ],
-        onUpdate: ({ editor }) => {
-            localStorage.setItem(editorContent, editor.getHTML());
-            if (content) {
-                switch (content.type.case) {
-                    case 'post':
-                        content.type.value.content = editor?.getHTML() || '';
-                        editContent(new Content({
-                            ...content,
-                            type: {
-                                case: 'post',
-                                value: content.type.value,
-                            }
-                        }));
-                        break;
+    const onEditorContentChange = async (editor: BlockNoteEditor) => {
+        const newEditor = {
+            blocks: JSON.stringify(editor.topLevelBlocks),
+            html: await editor.blocksToHTMLLossy(editor.topLevelBlocks),
+        };
+        localStorage.setItem(editorContent, newEditor.blocks);
+        setState({
+            editor: newEditor,
+        });
+    };
+
+    useEffect(() => {
+        // Define a type for touch points to store the start and end positions of a touch
+        type TouchPoint = {
+            startX: number;
+            startY: number;
+            endX: number;
+            endY: number;
+        };
+
+        let touchPoint: TouchPoint = { startX: 0, startY: 0, endX: 0, endY: 0 };
+
+        // Function to handle the start of a touch
+        const handleTouchStart = (e: TouchEvent) => {
+            touchPoint.startX = e.touches[0].clientX;
+            touchPoint.startY = e.touches[0].clientY;
+        };
+
+        // Function to handle the end of a touch
+        const handleTouchEnd = (e: TouchEvent) => {
+            touchPoint.endX = e.changedTouches[0].clientX;
+            touchPoint.endY = e.changedTouches[0].clientY;
+            handleSwipeGesture(touchPoint);
+        };
+
+        // Function to handle the swipe gesture and determine its direction
+        const handleSwipeGesture = (touchPoint: TouchPoint) => {
+            const deltaX = touchPoint.endX - touchPoint.startX;
+            const deltaY = touchPoint.endY - touchPoint.startY;
+
+            // Minimum distance for a swipe gesture
+            const minDistance = 50;
+
+            // Check if the horizontal movement is greater than the vertical movement and meets the minimum distance
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minDistance) {
+                const cur = editor.getTextCursorPosition()
+                if (deltaX > 0) {
+                    if (editor.canNestBlock()) {
+                        editor.nestBlock()
+                    }
+                } else {
+                    if (editor.canUnnestBlock()) {
+                        editor.unnestBlock()
+                    }
                 }
             }
+        };
+
+        // Add event listeners
+        document.addEventListener('touchstart', handleTouchStart);
+        document.addEventListener('touchend', handleTouchEnd);
+
+        // Clean up the event listeners on component unmount
+        return () => {
+            document.removeEventListener('touchstart', handleTouchStart);
+            document.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, []);
+
+    const editor: BlockNoteEditor = useBlockNote({
+        blockSpecs: {
+            ...defaultBlockSpecs,
+            codeBlock: CodeBlock,
         },
-        content: getContent(content),
-        editorProps: {
-            handleKeyDown: (view, event) => {
-                if (event.key === 'Tab') {
-                    event.preventDefault();
-                    if (editor === null) {
-                        return false;
-                    }
-                    event.preventDefault();
-                    if (event.shiftKey) {
-                        editor.chain().focus().liftListItem('listItem').run();
-                    } else {
-                        editor.chain().focus().sinkListItem('listItem').run();
-                    }
-                    return true;
-                }
-                return false;
-            },
-        },
+        slashMenuItems: [
+            ...getDefaultReactSlashMenuItems(blockSchema),
+            insertCode,
+        ],
+        onEditorContentChange: onEditorContentChange,
+        onEditorReady: (editor) => {
+            if (content) {
+                setEditorContent(content);
+            }
+        }
     });
+
 
     const contentFromForm = (): Content|undefined => {
         if (!formControl) {
@@ -274,8 +320,9 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                 content: contentFromForm(),
                 related: []
             });
-            void getSources();
             toast.success('Saved content');
+            editContent(resp.content);
+            void getSources();
         } catch (e) {
             toast.error('Failed to save content');
             console.error('failed to save', e)
@@ -286,36 +333,11 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         abortControllerRef.current?.abort();
     }
 
-    const resetContent = () => {
-        if (editor) {
-            editor.commands.setContent('');
-        }
-    }
-
-    const addImage = () => {
-        const url = window.prompt('URL')
-
-        if (url && editor) {
-            editor.chain().focus().setImage({ src: url }).run()
-            setRelatedContent([...relatedContent, url]);
-        }
-    }
-
-    const getSelectedText = () => {
-        if (!editor) {
-            return '';
-        }
-        const { view, state } = editor
-        const { from, to } = view.state.selection
-        const text = state.doc.textBetween(from, to, '')
-        // TODO breadchris puts cursor at end of selection, newline
-        editor.commands.setTextSelection({from: to, to: to});
-        editor.commands.enter();
-        return text;
-    }
+    // TODO breadchris setRelatedContent([...relatedContent, url]);
 
     return (
         <div className={"sm:mx-4 lg:mx-16"}>
+            <CommandMenu />
             <div className="mb-32 flex flex-col">
                 <div className="flex flex-row justify-between">
                     <span>
@@ -327,7 +349,7 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                         <AdjustmentsHorizontalIcon className="h-6 w-6" />
                     </button>
                 </div>
-                {editor && <ContentTypeEditor content={content} onUpdate={editContent} editor={editor} blockNoteEditor={blockNoteEditor} />}
+                {editor && <ContentTypeEditor content={content} onUpdate={editContent} editor={editor} />}
                 {/*<Splide aria-label="referenced content" options={{*/}
                 {/*    perPage: 3,*/}
                 {/*}}>*/}
@@ -337,31 +359,6 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                 {/*        </SplideSlide>*/}
                 {/*    ))}*/}
                 {/*</Splide>*/}
-                {editor && <BubbleMenu className={"space-x-2"} editor={editor} tippyOptions={{ duration: 100 }}>
-                    <button
-                        onClick={() => {
-                            const text = getSelectedText();
-                            if (text) {
-                                void inferFromSelectedText(text)
-                            }
-                        }}
-                        className={'btn ' + editor.isActive('bold') ? 'is-active' : ''}
-                    >
-                        ai
-                    </button>
-                    <PromptBubble onPrompt={(text) => {
-                        const selected = getSelectedText();
-                        void inferFromSelectedText(selected + ' ' + text);
-                    }} />
-                    <button
-                        onClick={() => {
-                            // set selection to be CodeBlockLowlight
-                            editor.chain().focus().toggleCode().run();
-                        }}
-                    >
-                        code
-                    </button>
-                </BubbleMenu>}
                 <dialog id="my_modal_1" className="modal" ref={settingsModal}>
                     <div className="modal-box">
                         {fields && <Form fields={fields} />}
@@ -377,7 +374,6 @@ export const ContentEditor: React.FC<{}> = ({}) => {
             </div>
             <BottomNav
                 changeContent={changeContent}
-                addImage={addImage}
                 addTag={addTag}
                 onSend={onSubmit}
                 onStop={onStop}
@@ -387,45 +383,13 @@ export const ContentEditor: React.FC<{}> = ({}) => {
     );
 };
 
-const PromptBubble: React.FC<{onPrompt: (text: string) => void}> = ({ onPrompt }) => {
-    const [open, setOpen] = useState(false);
-    const [text, setText] = useState('');
-
-    return (
-        <>
-            <Modal open={open} onClose={() => setOpen(false)}>
-                <div className="flex flex-col space-y-2">
-                    <div className={"flex flex-row"}>
-                        <input type="text" className={"input input-bordered w-full"} value={text} onChange={(e) => setText(e.target.value)} />
-                        <button className={"btn"} onClick={() => {
-                            onPrompt(text);
-                            setOpen(false);
-                        }}>
-                            ask
-                        </button>
-                    </div>
-                    <button onClick={() => {
-                        setOpen(false);
-                    }}>
-                        close
-                    </button>
-                </div>
-            </Modal>
-            <button onClick={() => setOpen(true)}>
-                ask
-            </button>
-        </>
-    )
-}
-
 const BottomNav: React.FC<{
     changeContent: (c: Content) => void,
-    addImage: () => void,
     addTag: (tag: string) => void,
     onSend: () => void,
     onStop: () => void,
     actionRunning: boolean,
-}> = ({changeContent, addImage, addTag, onSend, actionRunning, onStop}) => {
+}> = ({changeContent, addTag, onSend, actionRunning, onStop}) => {
    const [newContent, setNewContent] = useState(false);
    const [addingTag, setAddingTag] = useState(false);
     const [selectedTag, setSelectedTag] = useState<string>('');
@@ -444,12 +408,6 @@ const BottomNav: React.FC<{
            <ContentDrawer />
            <Modal open={newContent} onClose={onNewClose}>
                <div className="flex flex-col">
-                   <button className={"btn"} onClick={() => {
-                       addImage();
-                       setNewContent(false);
-                   }}>
-                       image
-                   </button>
                    <button className={"btn"} onClick={() => {
                        changeContent(urlContent('https://example.com', []));
                        setNewContent(false);
@@ -479,11 +437,11 @@ const BottomNav: React.FC<{
                    <button className={"btn"} onClick={() => setAddingTag(false)}>close</button>
                </div>
             </Modal>
-           <button onClick={() => setNewContent(true)}>
-               <PlusIcon className="h-6 w-6" />
-           </button>
            <button onClick={() => setAddingTag(true)}>
                <TagIcon className="h-6 w-6" />
+           </button>
+           <button onClick={() => setNewContent(true)}>
+               <PlusIcon className="h-6 w-6" />
            </button>
            {actionRunning && (
                <button onClick={onStop}>
@@ -514,9 +472,17 @@ const VoiceInputButton: React.FC<{onText: (text: string) => void}> = ({onText}) 
 const ContentTypeEditor: React.FC<{
     content: Content|undefined,
     onUpdate: (content: Content) => void,
-    editor: Editor,
-    blockNoteEditor: BlockNoteEditor,
-}> = ({content, editor, onUpdate, blockNoteEditor}) => {
+    editor: BlockNoteEditor,
+}> = ({content, onUpdate, editor}) => {
+    const blockNoteView = (
+        <BlockNoteView className={"h-96 touch-pan-y"} editor={editor}>
+            <FormattingToolbarPositioner editor={editor} />
+            <HyperlinkToolbarPositioner editor={editor} />
+            <SlashMenuPositioner editor={editor} />
+            <SideMenuPositioner editor={editor} sideMenu={(props) => <JustShareSideMenu editor={editor} />} />
+            <ImageToolbarPositioner editor={editor} />
+        </BlockNoteView>
+    )
     const getContent = (content: Content|undefined) => {
         if (content) {
             switch (content.type.case) {
@@ -560,8 +526,7 @@ const ContentTypeEditor: React.FC<{
                                     }
                                 }));
                             }} placeholder="title" className="input w-full max-w-xs" />
-                            <EditorContent className={""} editor={editor} />
-                            {/*<BlockNoteView editor={blockNoteEditor} />*/}
+                            {blockNoteView}
                         </div>
                     )
                 case 'data':
@@ -606,30 +571,11 @@ const ContentTypeEditor: React.FC<{
                     }
             }
         }
-        return <EditorContent className={"h-96"} editor={editor} />;
+        return blockNoteView;
     }
     return (
         <div>
             {getContent(content)}
         </div>
     );
-}
-
-const getContent = (content: Content|undefined) => {
-    const msg = "don't think, write."
-    if (!content) {
-        return msg;
-    }
-    switch (content.type.case) {
-        case 'post':
-            return content.type.value.content;
-        case 'data':
-            const d = content.type.value;
-            switch (d.type.case) {
-                case 'text':
-                    return d.type.value.data.toString();
-            }
-            break;
-    }
-    return msg;
 }

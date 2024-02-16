@@ -11,6 +11,7 @@ import {Provider} from "jotai";
 import {Admin} from "@/admin/Admin";
 import {SourcePage} from "@/source/SourcePage";
 import {AuthForm} from "@/auth/AuthForm";
+import {CommandMenu} from "@/components/CommandMenu";
 
 const AppRoutes = () => {
     const commonRoutes = [{

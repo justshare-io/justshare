@@ -25,7 +25,7 @@ export const SiteEditor: React.FC<{site: Site, onUpdate: (s: Site) => void}> = (
     }, [site]);
     return (
         <>
-            <TemplatePlayground wasm={"/app/go.wasm"} />
+            <TemplatePlayground />
             <div className="text-gray-600 px-3 py-2">
                 <h4 className="text-lg font-semibold">site: {site.hugoConfig?.title || 'untitled'}</h4>
             </div>

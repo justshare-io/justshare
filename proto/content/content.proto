@@ -14,7 +14,7 @@ import "content/browser/history.proto";
 option go_package = "./gen";
 
 service ContentService {
-  rpc Save(Contents) returns (ContentIDs);
+  rpc Save(Contents) returns (Contents);
   rpc Search(Query) returns (Results);
   rpc Relate(RelateRequest) returns (google.protobuf.Empty);
   rpc Analyze(Content) returns (Contents);
@@ -180,6 +180,7 @@ message Post {
   string content = 3;
   repeated string authors = 4;
   bool draft = 6;
+  string blocks = 7;
 }
 
 message GitRepo {

@@ -47,6 +47,10 @@ span.rsjv-value {
   min-height: 60vh;
 }
 
+.bn-editor {
+  padding-inline: 20px;
+}
+
 .tiptap {
   > * + * {
     margin-top: 0.75em;

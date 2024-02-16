@@ -18,7 +18,7 @@ export const ContentService = {
     save: {
       name: "Save",
       I: Contents,
-      O: ContentIDs,
+      O: Contents,
       kind: MethodKind.Unary,
     },
     /**

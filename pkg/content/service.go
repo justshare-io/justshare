@@ -424,7 +424,7 @@ func (s *Service) Relate(ctx context.Context, c *connect_go.Request[content.Rela
 	return connect_go.NewResponse(&emptypb.Empty{}), nil
 }
 
-func (s *Service) Save(ctx context.Context, c *connect_go.Request[content.Contents]) (*connect_go.Response[content.ContentIDs], error) {
+func (s *Service) Save(ctx context.Context, c *connect_go.Request[content.Contents]) (*connect_go.Response[content.Contents], error) {
 	uid, err := s.sess.GetUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -462,11 +462,16 @@ func (s *Service) Save(ctx context.Context, c *connect_go.Request[content.Conten
 	norm = append(norm, c.Msg.Related...)
 	c.Msg.Content.Tags = append(c.Msg.Content.Tags, tags...)
 
-	cnt, err := s.content.SaveContent(ctx, uid, uuid.Nil, c.Msg.Content, norm)
+	cntId, err := s.content.SaveContent(ctx, uid, uuid.Nil, c.Msg.Content, norm)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to save content")
 	}
-	return connect_go.NewResponse(&content.ContentIDs{ContentIds: []string{cnt.String()}}), nil
+
+	c.Msg.Content.Id = cntId.String()
+	return connect_go.NewResponse(&content.Contents{
+		Content: c.Msg.Content,
+		// TODO breadchris return related content
+	}), nil
 }
 
 func getTypeInfo(m protoreflect.ProtoMessage) (*content.GRPCTypeInfo, error) {

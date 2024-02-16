@@ -1,6 +1,8 @@
 /* global Go, ExpRenderGoTemplate, ExpConvertData */
 
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
+import {Editor} from "@monaco-editor/react";
+import { editor } from 'monaco-editor';
 
 const Format = {
     YAML: 'YAML',
@@ -15,11 +17,12 @@ const Defaults = {
     autoRender: true,
 };
 
-interface PlaygroundProps {
-    wasm: string; // Assuming this prop is required for WebAssembly initialization
-}
+export const TemplatePlayground = React.forwardRef(( props, ref ) => {
+    // TODO breadchris make configurable
+    const wasm = "/app/go.wasm";
 
-export const TemplatePlayground: React.FC<PlaygroundProps> = ({ wasm }) => {
+    const editorRef = useRef<editor.IStandaloneCodeEditor|null>(null);
+
     const [state, setState] = useState({
         ...Defaults,
         loading: true,
@@ -46,6 +49,7 @@ export const TemplatePlayground: React.FC<PlaygroundProps> = ({ wasm }) => {
     useEffect(() => {
         if (!state.loading) {
             updateRendered();
+            editorRef.current?.layout();
         }
     }, [state.loading]);
 
@@ -109,20 +113,22 @@ export const TemplatePlayground: React.FC<PlaygroundProps> = ({ wasm }) => {
     </html>
   `;
 
-    const gridClasses = 'group relative p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500';
-
     return (
-        <div className="divide-y divide-gray-200 overflow-hidden rounded-lg shadow sm:grid sm:grid-cols-2 sm:gap-px sm:divide-y-0">
-            <div className={gridClasses}>
-                <label>Template</label>
-                <textarea
-                    className="form-control mono"
-                    id="templateTextArea"
-                    value={state.template}
-                    onInput={updateTemplate}
+        <div ref={ref} className="grid grid-cols-4 gap-4">
+            <div className={"col-span-2"}>
+                <Editor
+                    height="60vh"
+                    defaultLanguage="javascript"
+                    defaultValue={state.template}
+                    onMount={(editor) => {
+                        editorRef.current = editor;
+                    }}
+                    onChange={(value, event) => {
+                        if (value) {
+                            setState((prevState) => ({...prevState, template: value}));
+                        }
+                    }}
                 />
-            </div>
-            <div className={gridClasses}>
                 <div className="form-group">
                     <div className="form-inline">
                         <label>Data</label>
@@ -150,7 +156,7 @@ export const TemplatePlayground: React.FC<PlaygroundProps> = ({ wasm }) => {
                     />
                 </div>
             </div>
-            <div className={gridClasses}>
+            <div className={"col-span-2"}>
                 <div className="form-group">
                     <label>Rendered</label>
                     <iframe
@@ -162,54 +168,6 @@ export const TemplatePlayground: React.FC<PlaygroundProps> = ({ wasm }) => {
                     />
                 </div>
             </div>
-            <div className={gridClasses}>
-                <div className="form-group">
-                    <label>Configuration</label>
-                    <div className="form-inline">
-                        <div className="custom-control custom-switch ml-3">
-                            <input
-                                type="checkbox"
-                                className="custom-control-input"
-                                id="autoRender"
-                                checked={state.autoRender}
-                                onChange={toggleAutoRender}
-                            />
-                            <label className="custom-control-label">
-                                Auto-render
-                            </label>
-                        </div>
-                    </div>
-                    <div className="form-inline mt-2">
-                        <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={setDefaults}
-                        >
-                            Restore Defaults
-                        </button>
-                    </div>
-                    <div className="form-inline mt-2">
-                        <div className="form-check">
-                            <input
-                                className="form-check-input"
-                                type="checkbox"
-                                id="enableSprig"
-                                checked={state.enableSprig}
-                                onChange={toggleEnableSprig}
-                            />
-                            <label className="form-check-label">
-                                <a
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    href="https://masterminds.github.io/sprig/"
-                                >
-                                    Enable Sprig
-                                </a>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     );
-};
+});

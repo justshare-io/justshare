@@ -201,6 +201,7 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 			blogFileServer.ServeHTTP(w, r)
 			return
 		}
+
 		if r.URL.Path == "/" {
 			templ.Handler(view.Page(view.Index(view.Feature{
 				Name:        "Justshare",

@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ContentServiceClient interface {
-	Save(ctx context.Context, in *Contents, opts ...grpc.CallOption) (*ContentIDs, error)
+	Save(ctx context.Context, in *Contents, opts ...grpc.CallOption) (*Contents, error)
 	Search(ctx context.Context, in *Query, opts ...grpc.CallOption) (*Results, error)
 	Relate(ctx context.Context, in *RelateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Analyze(ctx context.Context, in *Content, opts ...grpc.CallOption) (*Contents, error)
@@ -45,8 +45,8 @@ func NewContentServiceClient(cc grpc.ClientConnInterface) ContentServiceClient {
 	return &contentServiceClient{cc}
 }
 
-func (c *contentServiceClient) Save(ctx context.Context, in *Contents, opts ...grpc.CallOption) (*ContentIDs, error) {
-	out := new(ContentIDs)
+func (c *contentServiceClient) Save(ctx context.Context, in *Contents, opts ...grpc.CallOption) (*Contents, error) {
+	out := new(Contents)
 	err := c.cc.Invoke(ctx, "/content.ContentService/Save", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -203,7 +203,7 @@ func (x *contentServiceVoiceInputClient) Recv() (*VoiceInputResponse, error) {
 // All implementations should embed UnimplementedContentServiceServer
 // for forward compatibility
 type ContentServiceServer interface {
-	Save(context.Context, *Contents) (*ContentIDs, error)
+	Save(context.Context, *Contents) (*Contents, error)
 	Search(context.Context, *Query) (*Results, error)
 	Relate(context.Context, *RelateRequest) (*emptypb.Empty, error)
 	Analyze(context.Context, *Content) (*Contents, error)
@@ -221,7 +221,7 @@ type ContentServiceServer interface {
 type UnimplementedContentServiceServer struct {
 }
 
-func (UnimplementedContentServiceServer) Save(context.Context, *Contents) (*ContentIDs, error) {
+func (UnimplementedContentServiceServer) Save(context.Context, *Contents) (*Contents, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Save not implemented")
 }
 func (UnimplementedContentServiceServer) Search(context.Context, *Query) (*Results, error) {

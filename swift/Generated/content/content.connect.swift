@@ -10,10 +10,10 @@ import SwiftProtobuf
 public protocol Content_ContentServiceClientInterface: Sendable {
 
     @discardableResult
-    func `save`(request: Content_Contents, headers: Connect.Headers, completion: @escaping @Sendable (ResponseMessage<Content_ContentIDs>) -> Void) -> Connect.Cancelable
+    func `save`(request: Content_Contents, headers: Connect.Headers, completion: @escaping @Sendable (ResponseMessage<Content_Contents>) -> Void) -> Connect.Cancelable
 
     @available(iOS 13, *)
-    func `save`(request: Content_Contents, headers: Connect.Headers) async -> ResponseMessage<Content_ContentIDs>
+    func `save`(request: Content_Contents, headers: Connect.Headers) async -> ResponseMessage<Content_Contents>
 
     @discardableResult
     func `search`(request: Content_Query, headers: Connect.Headers, completion: @escaping @Sendable (ResponseMessage<Content_Results>) -> Void) -> Connect.Cancelable
@@ -89,12 +89,12 @@ public final class Content_ContentServiceClient: Content_ContentServiceClientInt
     }
 
     @discardableResult
-    public func `save`(request: Content_Contents, headers: Connect.Headers = [:], completion: @escaping @Sendable (ResponseMessage<Content_ContentIDs>) -> Void) -> Connect.Cancelable {
+    public func `save`(request: Content_Contents, headers: Connect.Headers = [:], completion: @escaping @Sendable (ResponseMessage<Content_Contents>) -> Void) -> Connect.Cancelable {
         return self.client.unary(path: "/content.ContentService/Save", request: request, headers: headers, completion: completion)
     }
 
     @available(iOS 13, *)
-    public func `save`(request: Content_Contents, headers: Connect.Headers = [:]) async -> ResponseMessage<Content_ContentIDs> {
+    public func `save`(request: Content_Contents, headers: Connect.Headers = [:]) async -> ResponseMessage<Content_Contents> {
         return await self.client.unary(path: "/content.ContentService/Save", request: request, headers: headers)
     }
 

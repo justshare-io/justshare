@@ -38,7 +38,7 @@ const editedContentAtom = atom<Content|undefined>(new Content({
     type: {
         case: 'post',
         value: new Post({
-            content: localStorage.getItem(editorContent) || "don't think, write.",
+            blocks: localStorage.getItem(editorContent) || '[]',
         })
     }
 }));

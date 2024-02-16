@@ -64,7 +64,7 @@ const (
 
 // ContentServiceClient is a client for the content.ContentService service.
 type ContentServiceClient interface {
-	Save(context.Context, *connect_go.Request[content.Contents]) (*connect_go.Response[content.ContentIDs], error)
+	Save(context.Context, *connect_go.Request[content.Contents]) (*connect_go.Response[content.Contents], error)
 	Search(context.Context, *connect_go.Request[content.Query]) (*connect_go.Response[content.Results], error)
 	Relate(context.Context, *connect_go.Request[content.RelateRequest]) (*connect_go.Response[emptypb.Empty], error)
 	Analyze(context.Context, *connect_go.Request[content.Content]) (*connect_go.Response[content.Contents], error)
@@ -88,7 +88,7 @@ type ContentServiceClient interface {
 func NewContentServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) ContentServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &contentServiceClient{
-		save: connect_go.NewClient[content.Contents, content.ContentIDs](
+		save: connect_go.NewClient[content.Contents, content.Contents](
 			httpClient,
 			baseURL+ContentServiceSaveProcedure,
 			opts...,
@@ -153,7 +153,7 @@ func NewContentServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 
 // contentServiceClient implements ContentServiceClient.
 type contentServiceClient struct {
-	save       *connect_go.Client[content.Contents, content.ContentIDs]
+	save       *connect_go.Client[content.Contents, content.Contents]
 	search     *connect_go.Client[content.Query, content.Results]
 	relate     *connect_go.Client[content.RelateRequest, emptypb.Empty]
 	analyze    *connect_go.Client[content.Content, content.Contents]
@@ -168,7 +168,7 @@ type contentServiceClient struct {
 }
 
 // Save calls content.ContentService.Save.
-func (c *contentServiceClient) Save(ctx context.Context, req *connect_go.Request[content.Contents]) (*connect_go.Response[content.ContentIDs], error) {
+func (c *contentServiceClient) Save(ctx context.Context, req *connect_go.Request[content.Contents]) (*connect_go.Response[content.Contents], error) {
 	return c.save.CallUnary(ctx, req)
 }
 
@@ -229,7 +229,7 @@ func (c *contentServiceClient) VoiceInput(ctx context.Context, req *connect_go.R
 
 // ContentServiceHandler is an implementation of the content.ContentService service.
 type ContentServiceHandler interface {
-	Save(context.Context, *connect_go.Request[content.Contents]) (*connect_go.Response[content.ContentIDs], error)
+	Save(context.Context, *connect_go.Request[content.Contents]) (*connect_go.Response[content.Contents], error)
 	Search(context.Context, *connect_go.Request[content.Query]) (*connect_go.Response[content.Results], error)
 	Relate(context.Context, *connect_go.Request[content.RelateRequest]) (*connect_go.Response[emptypb.Empty], error)
 	Analyze(context.Context, *connect_go.Request[content.Content]) (*connect_go.Response[content.Contents], error)
@@ -344,7 +344,7 @@ func NewContentServiceHandler(svc ContentServiceHandler, opts ...connect_go.Hand
 // UnimplementedContentServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedContentServiceHandler struct{}
 
-func (UnimplementedContentServiceHandler) Save(context.Context, *connect_go.Request[content.Contents]) (*connect_go.Response[content.ContentIDs], error) {
+func (UnimplementedContentServiceHandler) Save(context.Context, *connect_go.Request[content.Contents]) (*connect_go.Response[content.Contents], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("content.ContentService.Save is not implemented"))
 }
 
