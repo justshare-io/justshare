@@ -54,6 +54,9 @@ import {Splide, SplideSlide} from "@splidejs/react-splide";
 import '@splidejs/react-splide/css';
 import {Modal} from "@/components/modal";
 import {FilteredTagInput} from "@/tag/FilteredTagInput";
+import { BlockNoteEditor } from "@blocknote/core";
+import { BlockNoteView, useBlockNote } from "@blocknote/react";
+import "@blocknote/react/style.css";
 
 const lowlight = createLowlight();
 
@@ -182,6 +185,7 @@ export const ContentEditor: React.FC<{}> = ({}) => {
             abortControllerRef.current = undefined;
         }
     }
+    const blockNoteEditor: BlockNoteEditor = useBlockNote({});
 
     // https://vikramthyagarajan.medium.com/how-to-build-a-notion-like-text-editor-in-react-and-tiptap-7f394c36ed9d
     const editor = useEditor({
@@ -323,7 +327,7 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                         <AdjustmentsHorizontalIcon className="h-6 w-6" />
                     </button>
                 </div>
-                {editor && <ContentTypeEditor content={content} onUpdate={editContent} editor={editor} />}
+                {editor && <ContentTypeEditor content={content} onUpdate={editContent} editor={editor} blockNoteEditor={blockNoteEditor} />}
                 {/*<Splide aria-label="referenced content" options={{*/}
                 {/*    perPage: 3,*/}
                 {/*}}>*/}
@@ -511,7 +515,8 @@ const ContentTypeEditor: React.FC<{
     content: Content|undefined,
     onUpdate: (content: Content) => void,
     editor: Editor,
-}> = ({content, editor, onUpdate}) => {
+    blockNoteEditor: BlockNoteEditor,
+}> = ({content, editor, onUpdate, blockNoteEditor}) => {
     const getContent = (content: Content|undefined) => {
         if (content) {
             switch (content.type.case) {
@@ -556,6 +561,7 @@ const ContentTypeEditor: React.FC<{
                                 }));
                             }} placeholder="title" className="input w-full max-w-xs" />
                             <EditorContent className={""} editor={editor} />
+                            {/*<BlockNoteView editor={blockNoteEditor} />*/}
                         </div>
                     )
                 case 'data':

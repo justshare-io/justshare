@@ -3230,6 +3230,22 @@ details.collapse summary::-webkit-details-marker {
   outline-offset: 2px;
 }
 
+.\!loading {
+  pointer-events: none !important;
+  display: inline-block !important;
+  aspect-ratio: 1 / 1 !important;
+  width: 1.5rem !important;
+  background-color: currentColor !important;
+  -webkit-mask-size: 100% !important;
+          mask-size: 100% !important;
+  -webkit-mask-repeat: no-repeat !important;
+          mask-repeat: no-repeat !important;
+  -webkit-mask-position: center !important;
+          mask-position: center !important;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='24' height='24' stroke='%23000' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3E.spinner_V8m1%7Btransform-origin:center;animation:spinner_zKoa 2s linear infinite%7D.spinner_V8m1 circle%7Bstroke-linecap:round;animation:spinner_YpZS 1.5s ease-out infinite%7D%40keyframes spinner_zKoa%7B100%25%7Btransform:rotate(360deg)%7D%7D%40keyframes spinner_YpZS%7B0%25%7Bstroke-dasharray:0 150;stroke-dashoffset:0%7D47.5%25%7Bstroke-dasharray:42 150;stroke-dashoffset:-16%7D95%25%2C100%25%7Bstroke-dasharray:42 150;stroke-dashoffset:-59%7D%7D%3C%2Fstyle%3E%3Cg class='spinner_V8m1'%3E%3Ccircle cx='12' cy='12' r='9.5' fill='none' stroke-width='3'%3E%3C%2Fcircle%3E%3C%2Fg%3E%3C%2Fsvg%3E") !important;
+          mask-image: url("data:image/svg+xml,%3Csvg width='24' height='24' stroke='%23000' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3E.spinner_V8m1%7Btransform-origin:center;animation:spinner_zKoa 2s linear infinite%7D.spinner_V8m1 circle%7Bstroke-linecap:round;animation:spinner_YpZS 1.5s ease-out infinite%7D%40keyframes spinner_zKoa%7B100%25%7Btransform:rotate(360deg)%7D%7D%40keyframes spinner_YpZS%7B0%25%7Bstroke-dasharray:0 150;stroke-dashoffset:0%7D47.5%25%7Bstroke-dasharray:42 150;stroke-dashoffset:-16%7D95%25%2C100%25%7Bstroke-dasharray:42 150;stroke-dashoffset:-59%7D%7D%3C%2Fstyle%3E%3Cg class='spinner_V8m1'%3E%3Ccircle cx='12' cy='12' r='9.5' fill='none' stroke-width='3'%3E%3C%2Fcircle%3E%3C%2Fg%3E%3C%2Fsvg%3E") !important;
+}
+
 .loading {
   pointer-events: none;
   display: inline-block;
@@ -4822,10 +4838,24 @@ details.collapse summary::-webkit-details-marker {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.\!tooltip {
+  position: relative !important;
+  display: inline-block !important;
+  --tooltip-offset: calc(100% + 1px + var(--tooltip-tail, 0px)) !important;
+}
+
 .tooltip {
   position: relative;
   display: inline-block;
   --tooltip-offset: calc(100% + 1px + var(--tooltip-tail, 0px));
+}
+
+.\!tooltip:before {
+  position: absolute !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+  content: var(--tw-content) !important;
+  --tw-content: attr(data-tip) !important;
 }
 
 .tooltip:before {
@@ -4834,6 +4864,14 @@ details.collapse summary::-webkit-details-marker {
   z-index: 1;
   content: var(--tw-content);
   --tw-content: attr(data-tip);
+}
+
+.\!tooltip:before {
+  transform: translateX(-50%) !important;
+  top: auto !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: var(--tooltip-offset) !important;
 }
 
 .tooltip:before, .tooltip-top:before {
@@ -5027,6 +5065,16 @@ details.collapse summary::-webkit-details-marker {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.\!tooltip {
+  position: relative !important;
+  display: inline-block !important;
+  text-align: center !important;
+  --tooltip-tail: 0.1875rem !important;
+  --tooltip-color: var(--fallback-n,oklch(var(--n)/1)) !important;
+  --tooltip-text-color: var(--fallback-nc,oklch(var(--nc)/1)) !important;
+  --tooltip-tail-offset: calc(100% + 0.0625rem - var(--tooltip-tail)) !important;
+}
+
 .tooltip {
   position: relative;
   display: inline-block;
@@ -5035,6 +5083,17 @@ details.collapse summary::-webkit-details-marker {
   --tooltip-color: var(--fallback-n,oklch(var(--n)/1));
   --tooltip-text-color: var(--fallback-nc,oklch(var(--nc)/1));
   --tooltip-tail-offset: calc(100% + 0.0625rem - var(--tooltip-tail));
+}
+
+.\!tooltip:before,
+.\!tooltip:after {
+  opacity: 0 !important;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-backdrop-filter !important;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter !important;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-backdrop-filter !important;
+  transition-delay: 100ms !important;
+  transition-duration: 200ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .tooltip:before,
@@ -5048,6 +5107,27 @@ details.collapse summary::-webkit-details-marker {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.\!tooltip:before,
+.\!tooltip:after {
+  opacity: 0 !important;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-backdrop-filter !important;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter !important;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-backdrop-filter !important;
+  transition-delay: 100ms !important;
+  transition-duration: 200ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.\!tooltip:after {
+  position: absolute !important;
+  content: "" !important;
+  border-style: solid !important;
+  border-width: var(--tooltip-tail, 0) !important;
+  width: 0 !important;
+  height: 0 !important;
+  display: block !important;
+}
+
 .tooltip:after {
   position: absolute;
   content: "";
@@ -5056,6 +5136,21 @@ details.collapse summary::-webkit-details-marker {
   width: 0;
   height: 0;
   display: block;
+}
+
+.\!tooltip:before {
+  max-width: 20rem !important;
+  border-radius: 0.25rem !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  background-color: var(--tooltip-color) !important;
+  color: var(--tooltip-text-color) !important;
+  width: -moz-max-content !important;
+  width: max-content !important;
 }
 
 .tooltip:before {
@@ -5073,9 +5168,19 @@ details.collapse summary::-webkit-details-marker {
   width: max-content;
 }
 
+.\!tooltip.tooltip-open:before {
+  opacity: 1 !important;
+  transition-delay: 75ms !important;
+}
+
 .tooltip.tooltip-open:before {
   opacity: 1;
   transition-delay: 75ms;
+}
+
+.\!tooltip.tooltip-open:after {
+  opacity: 1 !important;
+  transition-delay: 75ms !important;
 }
 
 .tooltip.tooltip-open:after {
@@ -5083,14 +5188,30 @@ details.collapse summary::-webkit-details-marker {
   transition-delay: 75ms;
 }
 
+.\!tooltip:hover:before {
+  opacity: 1 !important;
+  transition-delay: 75ms !important;
+}
+
 .tooltip:hover:before {
   opacity: 1;
   transition-delay: 75ms;
 }
 
+.\!tooltip:hover:after {
+  opacity: 1 !important;
+  transition-delay: 75ms !important;
+}
+
 .tooltip:hover:after {
   opacity: 1;
   transition-delay: 75ms;
+}
+
+.\!tooltip:has(:focus-visible):after,
+.\!tooltip:has(:focus-visible):before {
+  opacity: 1 !important;
+  transition-delay: 75ms !important;
 }
 
 .tooltip:has(:focus-visible):after,
@@ -5099,10 +5220,37 @@ details.collapse summary::-webkit-details-marker {
   transition-delay: 75ms;
 }
 
+.\!tooltip:has(:focus-visible):after,
+.\!tooltip:has(:focus-visible):before {
+  opacity: 1 !important;
+  transition-delay: 75ms !important;
+}
+
+.\!tooltip:not([data-tip]):hover:before,
+.\!tooltip:not([data-tip]):hover:after {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
 .tooltip:not([data-tip]):hover:before,
 .tooltip:not([data-tip]):hover:after {
   visibility: hidden;
   opacity: 0;
+}
+
+.\!tooltip:not([data-tip]):hover:before,
+.\!tooltip:not([data-tip]):hover:after {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.\!tooltip:after {
+  transform: translateX(-50%) !important;
+  border-color: var(--tooltip-color) transparent transparent transparent !important;
+  top: auto !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: var(--tooltip-tail-offset) !important;
 }
 
 .tooltip:after, .tooltip-top:after {
@@ -5263,6 +5411,10 @@ details.collapse summary::-webkit-details-marker {
   display: table;
 }
 
+.table-caption {
+  display: table-caption;
+}
+
 .table-cell {
   display: table-cell;
 }
@@ -5389,10 +5541,6 @@ details.collapse summary::-webkit-details-marker {
 
 .border-collapse {
   border-collapse: collapse;
-}
-
-.\!transform {
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)) !important;
 }
 
 .transform {
@@ -5727,6 +5875,10 @@ details.collapse summary::-webkit-details-marker {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+.underline {
+  text-decoration-line: underline;
 }
 
 .line-through {

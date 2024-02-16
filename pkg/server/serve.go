@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/a-h/templ"
 	"github.com/bufbuild/connect-go"
 	grpcreflect "github.com/bufbuild/connect-grpcreflect-go"
 	"github.com/google/wire"
@@ -21,6 +22,7 @@ import (
 	"github.com/justshare-io/justshare/pkg/group"
 	shttp "github.com/justshare-io/justshare/pkg/http"
 	"github.com/justshare-io/justshare/pkg/kubes"
+	"github.com/justshare-io/justshare/pkg/server/view"
 	"github.com/justshare-io/justshare/pkg/user"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
@@ -196,12 +198,21 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 	muxRoot.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/@") {
 			_ = strings.Replace(r.URL.Path, "/@", "", 1)
-			println("path", r.URL.Path)
 			blogFileServer.ServeHTTP(w, r)
 			return
 		}
 		if r.URL.Path == "/" {
-			http.Redirect(w, r, "/app", http.StatusFound)
+			templ.Handler(view.Page(view.Index(view.Feature{
+				Name:        "Justshare",
+				Description: "Justshare is a platform for sharing and collaborating on content. It is a work in progress and is being developed by the community.",
+			}, view.Stat{
+				Id:    "1",
+				Name:  "Total Users",
+				Value: "100",
+			}, view.Item{
+				Name: "Justshare",
+				Href: "/",
+			}))).ServeHTTP(w, r)
 			return
 		}
 		if r.URL.Path == "/media" || strings.HasPrefix(r.URL.Path, "/media/") {
@@ -242,7 +253,6 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 	// TODO breadchris enable/disable based on if we are in dev mode
 	//bucketRoute, handler := a.bucket.HandleSignedURLs()
 	//muxRoot.Handle(bucketRoute, handler)
-	// TODO breadchris https://github.com/alexedwards/scs/tree/master/gormstore
 	return a.sessionManager.LoadAndSave(a.loggingMiddleware(muxRoot)), nil
 }
 

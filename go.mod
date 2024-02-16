@@ -9,6 +9,7 @@ require (
 	github.com/JohannesKaufmann/html-to-markdown v1.5.0
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/PuerkitoBio/goquery v1.8.1
+	github.com/a-h/templ v0.2.543
 	github.com/advancedlogic/GoOse v0.0.0-20210820140952-9d5822d4a625
 	github.com/alexferrari88/gohn v0.7.5
 	github.com/benbjohnson/litestream v0.3.13
