@@ -15,6 +15,7 @@ import (
 	ghttp "net/http"
 	"net/url"
 	"path"
+	"strings"
 	"sync"
 )
 
@@ -65,7 +66,18 @@ func (s *Normalize) Normalize(ctx context.Context, uid uuid.UUID, c *content.Con
 			//	obs = s.ProcessText(ctx, u.File)
 			default:
 				// TODO breadchris m4a is not a mime type in the golang mime package
-				if path.Ext(name) == ".m4a" {
+				if path.Ext(name) == ".m4a" || path.Ext(name) == ".mp4" {
+
+					// TODO breadchris for files that come from the frontend, the url is not set correctly
+					// see content.go:571 Search
+					if strings.HasPrefix(u.File.Url, "/media/") {
+						f, err := s.bucket.File(c.Id)
+						if err != nil {
+							return nil, nil, err
+						}
+						u.File.Url = f
+					}
+
 					ct, obs, err = s.ProcessAudio(context.TODO(), u.File, id, true)
 				} else {
 					return nil, nil, nil

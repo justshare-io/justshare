@@ -98,10 +98,6 @@ const ContentTable: React.FC<{displayContent: DisplayContent[]}> = ({displayCont
             console.error('failed to delete', e)
         }
     }
-    const cnt = selectedContent ? [
-        displayContent.find((c) => c.content?.id === selectedContent.id),
-        ...displayContent.filter((c) => c.content?.id !== selectedContent.id)
-    ] : displayContent;
     return (
         <table className="table w-full">
             <thead>
@@ -114,7 +110,7 @@ const ContentTable: React.FC<{displayContent: DisplayContent[]}> = ({displayCont
             </tr>
             </thead>
             <tbody>
-            {cnt.filter(notEmpty).map((item, index) => (
+            {displayContent.filter(notEmpty).map((item, index) => (
                 <tr key={index}>
                     <td>
                         <input

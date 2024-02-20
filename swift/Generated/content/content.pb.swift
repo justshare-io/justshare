@@ -557,6 +557,14 @@ public struct Content_Content {
     set {type = .browserHistory(newValue)}
   }
 
+  public var audioVideo: Content_AudioVideo {
+    get {
+      if case .audioVideo(let v)? = type {return v}
+      return Content_AudioVideo()
+    }
+    set {type = .audioVideo(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Type: Equatable {
@@ -567,6 +575,7 @@ public struct Content_Content {
     case site(Content_Site)
     case chatgptConversation(Chatgpt_Conversation)
     case browserHistory(Browser_History)
+    case audioVideo(Content_AudioVideo)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Content_Content.OneOf_Type, rhs: Content_Content.OneOf_Type) -> Bool {
@@ -602,11 +611,43 @@ public struct Content_Content {
         guard case .browserHistory(let l) = lhs, case .browserHistory(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.audioVideo, .audioVideo): return {
+        guard case .audioVideo(let l) = lhs, case .audioVideo(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
       default: return false
       }
     }
   #endif
   }
+
+  public init() {}
+}
+
+public struct Content_AudioVideo {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var file: String = String()
+
+  public var slices: [Content_Slice] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Content_Slice {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var startTime: UInt64 = 0
+
+  public var endTime: UInt64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 }
@@ -1115,6 +1156,8 @@ extension Content_StoredContent: @unchecked Sendable {}
 extension Content_Edge: @unchecked Sendable {}
 extension Content_Content: @unchecked Sendable {}
 extension Content_Content.OneOf_Type: @unchecked Sendable {}
+extension Content_AudioVideo: @unchecked Sendable {}
+extension Content_Slice: @unchecked Sendable {}
 extension Content_Post: @unchecked Sendable {}
 extension Content_GitRepo: @unchecked Sendable {}
 extension Content_Data: @unchecked Sendable {}
@@ -2221,6 +2264,7 @@ extension Content_Content: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     10: .same(proto: "site"),
     11: .standard(proto: "chatgpt_conversation"),
     12: .standard(proto: "browser_history"),
+    13: .standard(proto: "audio_video"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2324,6 +2368,19 @@ extension Content_Content: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
           self.type = .browserHistory(v)
         }
       }()
+      case 13: try {
+        var v: Content_AudioVideo?
+        var hadOneofValue = false
+        if let current = self.type {
+          hadOneofValue = true
+          if case .audioVideo(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.type = .audioVideo(v)
+        }
+      }()
       default: break
       }
     }
@@ -2375,6 +2432,10 @@ extension Content_Content: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       guard case .browserHistory(let v)? = self.type else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
     }()
+    case .audioVideo?: try {
+      guard case .audioVideo(let v)? = self.type else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
+    }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -2386,6 +2447,82 @@ extension Content_Content: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if lhs.uri != rhs.uri {return false}
     if lhs.id != rhs.id {return false}
     if lhs.type != rhs.type {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Content_AudioVideo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".AudioVideo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "file"),
+    2: .same(proto: "slices"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.file) }()
+      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.slices) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.file.isEmpty {
+      try visitor.visitSingularStringField(value: self.file, fieldNumber: 1)
+    }
+    if !self.slices.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.slices, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Content_AudioVideo, rhs: Content_AudioVideo) -> Bool {
+    if lhs.file != rhs.file {return false}
+    if lhs.slices != rhs.slices {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Content_Slice: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Slice"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "start_time"),
+    2: .standard(proto: "end_time"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.startTime) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.endTime) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.startTime != 0 {
+      try visitor.visitSingularUInt64Field(value: self.startTime, fieldNumber: 1)
+    }
+    if self.endTime != 0 {
+      try visitor.visitSingularUInt64Field(value: self.endTime, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Content_Slice, rhs: Content_Slice) -> Bool {
+    if lhs.startTime != rhs.startTime {return false}
+    if lhs.endTime != rhs.endTime {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

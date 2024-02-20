@@ -12,6 +12,7 @@ import {useAuth} from "@/auth/state";
 import {FileDrop} from "@/file/FileDrop";
 import {AddTagBadge} from "@/tag/AddTagBadge";
 import {postContent, siteContent, urlContent} from "../../extension/util";
+import {GroupDialog} from "@/auth/GroupManager";
 
 export const SourcePage: React.FC = () => {
     const {
@@ -24,6 +25,7 @@ export const SourcePage: React.FC = () => {
     const {editContent} = useContentEditor();
     const { id } = useParams();
     const { logout } = useAuth();
+    const [groupsOpen, setGroupsOpen] = useState(false);
 
     useEffect(() => {
         void getSources();
@@ -52,6 +54,10 @@ export const SourcePage: React.FC = () => {
         setSelected(source);
     };
 
+    const handleGroups = () => {
+        setGroupsOpen(true);
+    }
+
     const handlePublish = async () => {
         try {
             // TODO breadchris save content to group
@@ -76,12 +82,14 @@ export const SourcePage: React.FC = () => {
                 </div>
                 <div className="flex-none">
                     <ul className="menu menu-horizontal px-1">
+                        <li><a onClick={handleGroups}>groups</a></li>
                         <li><a onClick={handlePublish}>publish</a></li>
                         <li><a onClick={logout}>logout</a></li>
                     </ul>
                 </div>
             </div>
             <div className="flex-grow">
+                <GroupDialog open={groupsOpen} onClose={() => setGroupsOpen(false)} />
                 <ContentEditor />
                 {/*{sources.length > 1 && (*/}
                 {/*    <Tabs sources={sources} selected={selected} onSelectSource={handleSelectSource} />*/}

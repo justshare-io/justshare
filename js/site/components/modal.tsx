@@ -12,6 +12,18 @@ export const Modal: FC<{children: ReactNode, open: boolean, onClose: () => void}
         }
     }, [open]);
 
+    useEffect(() => {
+        const listener = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        }
+        window.addEventListener('keydown', listener);
+        return () => {
+            window.removeEventListener('keydown', listener);
+        }
+    }, [onClose]);
+
     return (
         <dialog className="modal" ref={dialogRef}>
             <div className="modal-box">

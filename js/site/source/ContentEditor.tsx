@@ -22,7 +22,7 @@ import {FileEditor} from "@/source/editors/FileEditor";
 import {SiteEditor} from "@/source/editors/SiteEditor";
 import {ChatGPTConversationEditor} from "@/source/editors/ChatGPTConversationEditor";
 import {ContentDrawer} from "@/source/ContentDrawer";
-import {postContent, siteContent, urlContent} from "../../extension/util";
+import {fileContent, postContent, siteContent, urlContent} from "../../extension/util";
 import css from 'highlight.js/lib/languages/css'
 import js from 'highlight.js/lib/languages/javascript'
 import ts from 'highlight.js/lib/languages/typescript'
@@ -38,14 +38,16 @@ import {BlockNoteEditor, defaultBlockSchema, defaultBlockSpecs} from "@blocknote
 import {
     BlockNoteView,
     FormattingToolbarPositioner, getDefaultReactSlashMenuItems,
-    HyperlinkToolbarPositioner, ImageToolbarPositioner, SideMenuPositioner,
+    HyperlinkToolbarPositioner, ImageToolbarPositioner, ReactSlashMenuItem, SideMenuPositioner,
     SlashMenuPositioner,
     useBlockNote
 } from "@blocknote/react";
 import "@blocknote/react/style.css";
 import {CommandMenu} from "@/components/CommandMenu";
 import {JustShareSideMenu} from "@/components/JustShareSideMenu";
-import {blockSchema, CodeBlock, insertCode} from "@/source/editors/CodeBlock";
+import {AIBlock, blockSchema, CodeBlock, insertCode} from "@/source/editors/CodeBlock";
+import {RiText} from "react-icons/ri";
+import {last} from "slate";
 
 const lowlight = createLowlight();
 
@@ -72,9 +74,11 @@ export const ContentEditor: React.FC<{}> = ({}) => {
     const { setValue } = fc;
     const abortControllerRef = useRef<AbortController|undefined>(undefined);
     const [state, setState] = useState<{
-        editor: { blocks: string, html: string, } | undefined
+        editor: { blocks: string, html: string, } | undefined,
+        initialChanges: number,
     }>({
         editor: undefined,
+        initialChanges: 0,
     });
 
     const [relatedContent, setRelatedContent] = useState<string[]>([]);
@@ -187,6 +191,25 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         const controller = new AbortController();
         abortControllerRef.current = controller;
 
+        const aiBlocks = editor.insertBlocks(
+            [
+                {
+                    content: "let me think...",
+                },
+            ],
+            editor.getTextCursorPosition().block,
+            "after"
+        );
+
+        function countIndentationDepth(inputString: string): number {
+            const match = inputString.match(/^( {4}|\t)*/);
+            if (!match) {
+                return 0;
+            }
+            const matchedString = match[0];
+            return matchedString.split(/( {4}|\t)/).filter(Boolean).length;
+        }
+
         try {
             const res = contentService.infer({
                 prompt,
@@ -194,14 +217,31 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                 timeoutMs: undefined,
                 signal: controller.signal,
             })
+            let content = '';
+            let lastBlock = aiBlocks[0];
+
+            let prevDepth = -1;
+            let count = 0;
             for await (const exec of res) {
-                // for every newline in the response, add a new paragraph. split on newline and then
-                // enter after each line
-                const parts = exec.text?.split('\n');
-                if (parts) {
-                    for (let i = 0; i < parts.length; i++) {
-                        // TODO breadchris
-                    }
+                // keep collecting until a newline is found
+                content += exec.text;
+                if (content.includes('\n')) {
+                    const depth = countIndentationDepth(content);
+                    content = content.trim()
+
+                    const newBlocks = editor.insertBlocks(
+                        [
+                            {
+                                content: content,
+                            },
+                        ],
+                        lastBlock,
+                        count === 0 ? "nested" : "after"
+                    );
+                    lastBlock = newBlocks[0];
+                    content = '';
+                    prevDepth = depth;
+                    count += 1;
                 }
             }
         } catch (e: any) {
@@ -212,15 +252,46 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         }
     }
 
+    function scrollToMakeBottomVisible(element: Element): void {
+        const elementBottomPosition = element.getBoundingClientRect().bottom;
+        const viewportHeight = window.innerHeight;
+
+        const navHeight = document.querySelector('.btm-nav')?.scrollHeight;
+        if (!navHeight) {
+            return;
+        }
+
+        if (elementBottomPosition > (viewportHeight - navHeight)) {
+            const scrollAmount = elementBottomPosition - viewportHeight + navHeight;
+            window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+        }
+    }
+
     const onEditorContentChange = async (editor: BlockNoteEditor) => {
+        // TODO breadchris when the editor loads, a few changes are made that would otherwise cause the editor to scroll to the bottom
+        const tryToScroll = (state: {initialChanges: number}) => {
+            const blockId = editor.getTextCursorPosition().block.id;
+            const e = document.querySelector(`[data-id="${blockId}"]`);
+            if (state.initialChanges < 1 && editor.getTextCursorPosition().block.content?.length == 0) {
+                return state.initialChanges + 1;
+            } else {
+                if (state.initialChanges >= 1 && e) {
+                    scrollToMakeBottomVisible(e);
+                }
+            }
+            return state.initialChanges;
+        }
+
         const newEditor = {
             blocks: JSON.stringify(editor.topLevelBlocks),
             html: await editor.blocksToHTMLLossy(editor.topLevelBlocks),
         };
         localStorage.setItem(editorContent, newEditor.blocks);
-        setState({
+        setState((state) => ({
+            ...state,
             editor: newEditor,
-        });
+            initialChanges: tryToScroll(state),
+        }));
     };
 
     useEffect(() => {
@@ -281,14 +352,40 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         };
     }, []);
 
+    const insertAI: ReactSlashMenuItem<typeof blockSchema> = {
+        name: "Ask AI",
+        execute: (editor) => {
+            // editor.insertBlocks(
+            //     [
+            //         {
+            //             type: "aiBlock",
+            //             props: {},
+            //         },
+            //     ],
+            //     editor.getTextCursorPosition().block,
+            //     "after"
+            // );
+            const content = editor.getTextCursorPosition().block.content;
+            if (content && content.length > 0 && content[0].type === "text") {
+                const text = content[0].text;
+                void inferFromSelectedText(text);
+            }
+        },
+        aliases: ["ai"],
+        group: "Other",
+        icon: <RiText />,
+    };
+
     const editor: BlockNoteEditor = useBlockNote({
         blockSpecs: {
             ...defaultBlockSpecs,
-            codeBlock: CodeBlock,
+            // codeBlock: CodeBlock,
+            aiBlock: AIBlock,
         },
         slashMenuItems: [
             ...getDefaultReactSlashMenuItems(blockSchema),
-            insertCode,
+            // insertCode,
+            insertAI,
         ],
         onEditorContentChange: onEditorContentChange,
         onEditorReady: (editor) => {
@@ -338,9 +435,9 @@ export const ContentEditor: React.FC<{}> = ({}) => {
     return (
         <div className={"sm:mx-4 lg:mx-16"}>
             <CommandMenu />
-            <div className="mb-32 flex flex-col">
+            <div className="mb-64 flex flex-col">
                 <div className="flex flex-row justify-between">
-                    <span>
+                    <span className={"space-x-1"}>
                         {content?.tags.map((tag) => (
                             <span key={tag} className="badge badge-outline badge-sm" onClick={() => removeTag(tag)}>{tag}</span>
                         ))}
@@ -408,22 +505,30 @@ const BottomNav: React.FC<{
            <ContentDrawer />
            <Modal open={newContent} onClose={onNewClose}>
                <div className="flex flex-col">
-                   <button className={"btn"} onClick={() => {
-                       changeContent(urlContent('https://example.com', []));
-                       setNewContent(false);
-                   }}>url</button>
-                   <button className={"btn"} onClick={() => {
-                       changeContent(postContent("Don't think, write."));
-                       setNewContent(false);
-                   }}>
-                       post
-                   </button>
-                   <li onClick={() => {
-                       changeContent(siteContent());
-                       setNewContent(false);
-                   }}>
-                       <a>site</a>
-                   </li>
+                   <div className={"flex flex-row space-y-2"}>
+                       <button className={"btn"} onClick={() => {
+                           changeContent(urlContent('https://example.com', []));
+                           setNewContent(false);
+                       }}>url</button>
+                       <button className={"btn"} onClick={() => {
+                           changeContent(postContent("Don't think, write."));
+                           setNewContent(false);
+                       }}>
+                           post
+                       </button>
+                       <button className={"btn"} onClick={() => {
+                           changeContent(siteContent());
+                           setNewContent(false);
+                       }}>
+                           <a>site</a>
+                       </button>
+                       <button className={"btn"} onClick={() => {
+                           changeContent(fileContent());
+                           setNewContent(false);
+                       }}>
+                           <a>file</a>
+                       </button>
+                   </div>
                    <button className={"btn"} onClick={onNewClose}>close</button>
                </div>
            </Modal>
@@ -437,11 +542,11 @@ const BottomNav: React.FC<{
                    <button className={"btn"} onClick={() => setAddingTag(false)}>close</button>
                </div>
             </Modal>
-           <button onClick={() => setAddingTag(true)}>
-               <TagIcon className="h-6 w-6" />
-           </button>
            <button onClick={() => setNewContent(true)}>
                <PlusIcon className="h-6 w-6" />
+           </button>
+           <button onClick={() => setAddingTag(true)}>
+               <TagIcon className="h-6 w-6" />
            </button>
            {actionRunning && (
                <button onClick={onStop}>
@@ -475,11 +580,12 @@ const ContentTypeEditor: React.FC<{
     editor: BlockNoteEditor,
 }> = ({content, onUpdate, editor}) => {
     const blockNoteView = (
-        <BlockNoteView className={"h-96 touch-pan-y"} editor={editor}>
+        <BlockNoteView className={"touch-pan-y"} editor={editor}>
             <FormattingToolbarPositioner editor={editor} />
             <HyperlinkToolbarPositioner editor={editor} />
             <SlashMenuPositioner editor={editor} />
-            <SideMenuPositioner editor={editor} sideMenu={(props) => <JustShareSideMenu editor={editor} />} />
+            {/*<SideMenuPositioner editor={editor} sideMenu={(props) => <JustShareSideMenu editor={editor} />} />*/}
+            <SideMenuPositioner editor={editor} />
             <ImageToolbarPositioner editor={editor} />
         </BlockNoteView>
     )

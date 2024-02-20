@@ -171,7 +171,18 @@ message Content {
     Site site = 10;
     chatgpt.Conversation chatgpt_conversation = 11;
     browser.History browser_history = 12;
+    AudioVideo audio_video = 13;
   };
+}
+
+message AudioVideo {
+  string file = 1;
+  repeated Slice slices = 2;
+}
+
+message Slice {
+  uint64 start_time = 1;
+  uint64 end_time = 2;
 }
 
 message Post {

@@ -13,6 +13,7 @@ import { useFloating, useTransitionStyles } from "@floating-ui/react";
 import { FC, useEffect, useRef, useState } from "react";
 
 import {DragHandle, DragHandleMenuProps, SideMenu} from "@blocknote/react";
+import {JustShareDragHandle} from "@/components/JustShareDragHandle";
 
 export const DefaultSideMenu = <
     BSchema extends BlockSchema,
@@ -22,7 +23,7 @@ export const DefaultSideMenu = <
     props: SideMenuProps<BSchema, I, S>
 ) => (
     <SideMenu>
-        <DragHandle {...props} />
+        <JustShareDragHandle {...props} />
     </SideMenu>
 );
 

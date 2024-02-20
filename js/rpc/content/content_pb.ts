@@ -1113,6 +1113,12 @@ export class Content extends Message<Content> {
      */
     value: History;
     case: "browserHistory";
+  } | {
+    /**
+     * @generated from field: content.AudioVideo audio_video = 13;
+     */
+    value: AudioVideo;
+    case: "audioVideo";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Content>) {
@@ -1134,6 +1140,7 @@ export class Content extends Message<Content> {
     { no: 10, name: "site", kind: "message", T: Site, oneof: "type" },
     { no: 11, name: "chatgpt_conversation", kind: "message", T: Conversation, oneof: "type" },
     { no: 12, name: "browser_history", kind: "message", T: History, oneof: "type" },
+    { no: 13, name: "audio_video", kind: "message", T: AudioVideo, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Content {
@@ -1150,6 +1157,92 @@ export class Content extends Message<Content> {
 
   static equals(a: Content | PlainMessage<Content> | undefined, b: Content | PlainMessage<Content> | undefined): boolean {
     return proto3.util.equals(Content, a, b);
+  }
+}
+
+/**
+ * @generated from message content.AudioVideo
+ */
+export class AudioVideo extends Message<AudioVideo> {
+  /**
+   * @generated from field: string file = 1;
+   */
+  file = "";
+
+  /**
+   * @generated from field: repeated content.Slice slices = 2;
+   */
+  slices: Slice[] = [];
+
+  constructor(data?: PartialMessage<AudioVideo>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "content.AudioVideo";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "file", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "slices", kind: "message", T: Slice, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AudioVideo {
+    return new AudioVideo().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AudioVideo {
+    return new AudioVideo().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AudioVideo {
+    return new AudioVideo().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AudioVideo | PlainMessage<AudioVideo> | undefined, b: AudioVideo | PlainMessage<AudioVideo> | undefined): boolean {
+    return proto3.util.equals(AudioVideo, a, b);
+  }
+}
+
+/**
+ * @generated from message content.Slice
+ */
+export class Slice extends Message<Slice> {
+  /**
+   * @generated from field: uint64 start_time = 1;
+   */
+  startTime = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 end_time = 2;
+   */
+  endTime = protoInt64.zero;
+
+  constructor(data?: PartialMessage<Slice>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "content.Slice";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "start_time", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "end_time", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Slice {
+    return new Slice().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Slice {
+    return new Slice().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Slice {
+    return new Slice().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Slice | PlainMessage<Slice> | undefined, b: Slice | PlainMessage<Slice> | undefined): boolean {
+    return proto3.util.equals(Slice, a, b);
   }
 }
 

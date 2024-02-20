@@ -15,6 +15,9 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -49,7 +52,7 @@ func NewClient(
 func (a *Client) Transcribe(ctx context.Context, id, filePath string, captureDevice int32) rxgo.Observable {
 	slog.Debug("transcribing audio with whisper", "id", id, "filePath", filePath)
 	if a.config.Offline {
-		return a.offlineTranscription(ctx, filePath, captureDevice)
+		return a.tmpOfflineTranscription(ctx, filePath, captureDevice)
 	} else {
 		return a.apiTranscription(ctx, id, filePath)
 	}
@@ -95,6 +98,102 @@ func (a *Client) apiTranscription(ctx context.Context, id string, filePath strin
 			return
 		}
 	}}, rxgo.WithContext(ctx))
+}
+
+// TODO breadchris debug why stream is returning not great transcription
+func (a *Client) tmpOfflineTranscription(ctx context.Context, file string, captureDevice int32) rxgo.Observable {
+	return rxgo.Create([]rxgo.Producer{func(ctx context.Context, next chan<- rxgo.Item) {
+		cmd := exec.Command("third_party/whisper.cpp/main")
+		_, err := os.Stat(transModel)
+		if err != nil {
+			next <- rxgo.Error(errors.Wrapf(err, "failed to stat model %s", transModel))
+			return
+		}
+
+		cmd.Args = append(cmd.Args, "-owts", "-f", file)
+		cmd.Args = append(
+			cmd.Args,
+			"-m", transModel,
+		)
+
+		slog.Debug("running stream", "cmd", cmd.String())
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			next <- rxgo.Error(err)
+			return
+		}
+		stderr, err := cmd.StderrPipe()
+		if err != nil {
+			next <- rxgo.Error(err)
+			return
+		}
+
+		lineRegex := regexp.MustCompile(`\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s+(.+)`)
+		var segmentNum uint32
+
+		stdoutScan := bufio.NewScanner(stdout)
+		var done chan struct{}
+		go func() {
+			for stdoutScan.Scan() {
+				t := stdoutScan.Text()
+				matches := lineRegex.FindStringSubmatch(t)
+				if len(matches) == 4 {
+					startTime := parseTime(matches[1])
+					endTime := parseTime(matches[2])
+					text := matches[3]
+					slog.Debug("found segment", "segment", t, "startTime", startTime, "endTime", endTime, "text", text)
+					seg := content.Segment{
+						Num:       segmentNum,
+						Text:      text,
+						StartTime: startTime,
+						EndTime:   endTime,
+					}
+					next <- rxgo.Of(&seg)
+					segmentNum++
+				}
+			}
+			done <- struct{}{}
+		}()
+
+		stderrScan := bufio.NewScanner(stderr)
+		go func() {
+			for stderrScan.Scan() {
+				// next <- rxgo.Of(stderrScan.Text())
+				slog.Debug(stderrScan.Text(), "stream")
+			}
+		}()
+
+		err = cmd.Start()
+		if err != nil {
+			next <- rxgo.Error(err)
+			return
+		}
+
+		go func() {
+			<-ctx.Done()
+			slog.Info("killing stream")
+			cmd.Process.Kill()
+		}()
+
+		err = cmd.Wait()
+		if err != nil {
+			next <- rxgo.Error(err)
+			return
+		}
+		<-done
+	}}, rxgo.WithContext(ctx))
+}
+
+func parseTime(timeStr string) uint64 {
+	parts := strings.Split(timeStr, ":")
+	hours, _ := strconv.Atoi(parts[0])
+	minutes, _ := strconv.Atoi(parts[1])
+	secondsParts := strings.Split(parts[2], ".")
+	seconds, _ := strconv.Atoi(secondsParts[0])
+	milliseconds, _ := strconv.Atoi(secondsParts[1])
+
+	totalMilliseconds := uint64(hours*3600000 + minutes*60000 + seconds*1000 + milliseconds)
+	return totalMilliseconds
 }
 
 func (a *Client) offlineTranscription(ctx context.Context, file string, captureDevice int32) rxgo.Observable {

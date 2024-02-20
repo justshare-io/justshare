@@ -42,11 +42,44 @@ export const CodeBlock = createReactBlockSpec(
     }
 );
 
+export const AIBlock = createReactBlockSpec(
+    {
+        type: "aiBlock",
+        propSchema: {
+            ...defaultProps,
+            result: {
+                default: '',
+            },
+        },
+        content: "inline",
+    },
+    {
+        render: ({ block, contentRef }) => {
+            return (
+                <p id={"ai-result"}>{block.props.result}</p>
+            );
+        },
+        toExternalHTML: ({ contentRef }) => <div ref={contentRef} />,
+        parse: (element) => {
+            const result = element.textContent;
+
+            if (result === "") {
+                return;
+            }
+
+            return {
+                result: result || undefined,
+            };
+        },
+    }
+);
+
 export const blockSchema = {
     // Adds all default blocks.
     ...defaultBlockSchema,
     // Adds the font paragraph.
     codeBlock: CodeBlock.config,
+    aiBlock: AIBlock.config,
 };
 
 // Creates a slash menu item for inserting a font paragraph block.
@@ -65,6 +98,26 @@ export const insertCode: ReactSlashMenuItem<typeof blockSchema> = {
         );
     },
     aliases: ["code"],
+    group: "Other",
+    icon: <RiText />,
+};
+
+export const insertAI: ReactSlashMenuItem<typeof blockSchema> = {
+    name: "Ask AI",
+    execute: (editor) => {
+        // editor.insertBlocks(
+        //     [
+        //         {
+        //             type: "aiBlock",
+        //             props: {},
+        //         },
+        //     ],
+        //     editor.getTextCursorPosition().block,
+        //     "after"
+        // );
+        console.log(editor.getTextCursorPosition().block.content);
+    },
+    aliases: ["ai"],
     group: "Other",
     icon: <RiText />,
 };

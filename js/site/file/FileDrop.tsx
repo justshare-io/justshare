@@ -7,6 +7,46 @@ interface FileDropProps {
     children?: React.ReactNode;
 }
 
+// context provider
+const FileDropContext = React.createContext<{
+    onDrop: (file: File) => void;
+}>({
+    onDrop: () => {},
+});
+
+export const useFileDrop = () => {
+    return React.useContext(FileDropContext);
+};
+
+export const FileDropProvider: React.FC = ({children}) => {
+    const [project] = useProjectContext();
+    const onDrop = useCallback(async (file: File) => {
+        if (project) {
+            const res = await contentService.save({
+                content: {
+                    type: {
+                        case: 'data',
+                        value: new Data({
+                            type: {
+                                case: 'file',
+                                value: file,
+                            }
+                        })
+                    },
+                },
+            }, {
+                timeoutMs: undefined,
+            });
+        }
+    }, [project]);
+
+    return (
+        <FileDropContext.Provider value={{onDrop}}>
+            {children}
+        </FileDropContext.Provider>
+    );
+};
+
 export const FileDrop: React.FC<FileDropProps> = ({children}) => {
     const [isDragging, setIsDragging] = useState(false);
 

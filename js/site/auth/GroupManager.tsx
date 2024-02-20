@@ -1,33 +1,17 @@
 import {useProjectContext} from "@/react/ProjectProvider";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {baseURL, userService} from "@/service";
 import toast from "react-hot-toast";
-import {UserGroupIcon} from "@heroicons/react/24/outline";
+import {useAuth} from "@/auth/state";
+import {Modal} from "@/components/modal";
 
-export const GroupDialog = () => {
-    const dialogRef = React.useRef<HTMLDialogElement>(null);
-    const openModal = () => {
-        if (dialogRef.current) {
-            dialogRef.current.showModal();
-        }
-    };
+export const GroupDialog: React.FC<{open: boolean, onClose: () => void}> = ({open, onClose}) => {
     return (
-        <>
-            <button className="btn" onClick={openModal}>
-                <UserGroupIcon  className="h-6 w-6" />
-            </button>
-            <dialog className="modal" ref={dialogRef}>
-                <div className="modal-box">
-                    <h3 className="font-bold text-lg">Groups</h3>
-                    <GroupManager />
-                    <div className="modal-action">
-                        <form method="dialog">
-                            <button className="btn">Close</button>
-                        </form>
-                    </div>
-                </div>
-            </dialog>
-        </>
+        <Modal open={open} onClose={onClose}>
+            <h3 className="font-bold text-lg">Groups</h3>
+            <GroupManager />
+            <button className="btn" onClick={onClose}>close</button>
+        </Modal>
     )
 }
 
@@ -69,7 +53,7 @@ const GroupMenu: React.FC<{id: string, setInvite: (invite: string) => void}> = (
 }
 
 const GroupManager = () => {
-    const {groups, loadGroups} = useProjectContext();
+    const {groups, loadGroups} = useAuth();
     const [name, setName] = useState<string>('');
     const [invite, setInvite] = useState<string|undefined>(undefined);
     const addGroup = async () => {

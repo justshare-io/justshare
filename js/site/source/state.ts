@@ -68,7 +68,7 @@ export const useContentEditor = () => {
     }
 
     const changeContent = (content: Content) => {
-        window.history.pushState({}, '', `/app`);
+        window.history.pushState({}, '', `/app/content`);
         setEditedContent(content);
         setNewContent(true);
     }

@@ -1,13 +1,21 @@
 import {atom, useAtom} from "jotai/index";
-import {User} from "@/rpc/user/user_pb";
+import {Group, Groups, User} from "@/rpc/user/user_pb";
 import {userService} from "@/service";
 import toast from "react-hot-toast";
 
 const userAtom = atom<User|undefined>(undefined);
 userAtom.debugLabel = 'userAtom';
+const groupsAtom = atom<Group[]>([]);
+groupsAtom.debugLabel = 'groupsAtom';
 
 export const useAuth = () => {
     const [user, setUser] = useAtom(userAtom);
+    const [groups, setGroups] = useAtom(groupsAtom);
+
+    const loadGroups = async () => {
+        const res = await userService.getGroups({});
+        setGroups(res.groups);
+    }
 
     const logout = async () => {
         try {
@@ -60,5 +68,5 @@ export const useAuth = () => {
             toast.error('Failed to login: ' + e.message);
         }
     }
-    return {user, register, tryLogin, login, logout};
+    return {user, register, tryLogin, login, logout, loadGroups, groups};
 }

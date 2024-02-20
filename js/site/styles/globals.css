@@ -48,7 +48,7 @@ span.rsjv-value {
 }
 
 .bn-editor {
-  padding-inline: 20px;
+  padding-inline: 30px;
 }
 
 .tiptap {
@@ -123,3 +123,71 @@ span.rsjv-value {
     }
   }
 }
+
+.content-nav {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  padding-bottom: env(safe-area-inset-bottom);
+  height: 4rem;
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-b1, oklch(var(--b1)))/var(--tw-bg-opacity);
+  color: currentColor;
+}
+
+/*.btm-nav > *:not(.active) {*/
+/*  padding-top: 0.125rem;*/
+/*}*/
+
+/*.btm-nav > *:where(.active) {*/
+/*  border-top-width: 2px;*/
+/*  --tw-bg-opacity: 1;*/
+/*  background-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-bg-opacity)));*/
+/*}*/
+
+/*.btm-nav > *:where(.\!active) {*/
+/*  border-top-width: 2px !important;*/
+/*  --tw-bg-opacity: 1 !important;*/
+/*  background-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-bg-opacity))) !important;*/
+/*}*/
+
+/*.btm-nav > *.disabled,*/
+/*.btm-nav > *[disabled] {*/
+/*  pointer-events: none;*/
+/*  --tw-border-opacity: 0;*/
+/*  background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity)));*/
+/*  --tw-bg-opacity: 0.1;*/
+/*  color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity)));*/
+/*  --tw-text-opacity: 0.2;*/
+/*}*/
+
+/*.btm-nav > *.\!disabled {*/
+/*  pointer-events: none !important;*/
+/*  --tw-border-opacity: 0 !important;*/
+/*  background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity))) !important;*/
+/*  --tw-bg-opacity: 0.1 !important;*/
+/*  color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity))) !important;*/
+/*  --tw-text-opacity: 0.2 !important;*/
+/*}*/
+
+/*.btm-nav > * .label {*/
+/*  font-size: 1rem;*/
+/*  line-height: 1.5rem;*/
+/*}*/
+
+/*.btm-nav > * .\!label {*/
+/*  font-size: 1rem !important;*/
+/*  line-height: 1.5rem !important;*/
+/*}*/
+
+/*.btn:active:hover,*/
+/*.btn:active:focus {*/
+/*  animation: button-pop 0s ease-out;*/
+/*  transform: scale(var(--btn-focus-scale, 0.97));*/
+/*}*/
