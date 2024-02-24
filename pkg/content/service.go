@@ -569,7 +569,7 @@ func (s *Service) Search(ctx context.Context, c *connect_go.Request[content.Quer
 			case *content.Data_File:
 				// TODO breadchris the URL for saved files should come from a store
 				// TODO breadchris if a file is saved from the frontend, this URL will not be correct?
-				u.File.Url = fmt.Sprintf("/media/%s", cn.ID)
+				u.File.Url = fmt.Sprintf("/upload/%s", cn.ID)
 			}
 		}
 

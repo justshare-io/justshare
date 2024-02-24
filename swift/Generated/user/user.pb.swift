@@ -133,6 +133,22 @@ public struct User_User {
   fileprivate var _config: User_Config? = nil
 }
 
+public struct User_Usage {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var userID: String = String()
+
+  public var databaseStorageUsed: Int64 = 0
+
+  public var fileStorageUsed: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct User_Group {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -179,6 +195,8 @@ public struct User_LoginResponse {
 
   public var success: Bool = false
 
+  public var expires: Int64 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -195,6 +213,7 @@ extension User_GroupInvite: @unchecked Sendable {}
 extension User_Groups: @unchecked Sendable {}
 extension User_AnalyzeConversationRequest: @unchecked Sendable {}
 extension User_User: @unchecked Sendable {}
+extension User_Usage: @unchecked Sendable {}
 extension User_Group: @unchecked Sendable {}
 extension User_Config: @unchecked Sendable {}
 extension User_LoginResponse: @unchecked Sendable {}
@@ -488,6 +507,50 @@ extension User_User: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
   }
 }
 
+extension User_Usage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Usage"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "user_id"),
+    2: .standard(proto: "database_storage_used"),
+    3: .standard(proto: "file_storage_used"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.userID) }()
+      case 2: try { try decoder.decodeSingularInt64Field(value: &self.databaseStorageUsed) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.fileStorageUsed) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.userID.isEmpty {
+      try visitor.visitSingularStringField(value: self.userID, fieldNumber: 1)
+    }
+    if self.databaseStorageUsed != 0 {
+      try visitor.visitSingularInt64Field(value: self.databaseStorageUsed, fieldNumber: 2)
+    }
+    if self.fileStorageUsed != 0 {
+      try visitor.visitSingularInt64Field(value: self.fileStorageUsed, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: User_Usage, rhs: User_Usage) -> Bool {
+    if lhs.userID != rhs.userID {return false}
+    if lhs.databaseStorageUsed != rhs.databaseStorageUsed {return false}
+    if lhs.fileStorageUsed != rhs.fileStorageUsed {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension User_Group: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Group"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -575,6 +638,7 @@ extension User_LoginResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "user"),
     2: .same(proto: "success"),
+    3: .same(proto: "expires"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -585,6 +649,7 @@ extension User_LoginResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularMessageField(value: &self._user) }()
       case 2: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.expires) }()
       default: break
       }
     }
@@ -601,12 +666,16 @@ extension User_LoginResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if self.success != false {
       try visitor.visitSingularBoolField(value: self.success, fieldNumber: 2)
     }
+    if self.expires != 0 {
+      try visitor.visitSingularInt64Field(value: self.expires, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: User_LoginResponse, rhs: User_LoginResponse) -> Bool {
     if lhs._user != rhs._user {return false}
     if lhs.success != rhs.success {return false}
+    if lhs.expires != rhs.expires {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -69,11 +69,6 @@ export const SourcePage: React.FC = () => {
         }
     }
 
-    if (!sources) {
-        return (
-            <div className="loading loading-lg"></div>
-        );
-    }
     return (
         <div className="p-5 h-[95vh] flex flex-col">
             <div className={"navbar bg-base-100"}>

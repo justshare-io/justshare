@@ -70,7 +70,7 @@ var (
 				Symbol:     "group_invites_groups_invites",
 				Columns:    []*schema.Column{GroupInvitesColumns[2]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -91,7 +91,7 @@ var (
 				Symbol:     "group_users_groups_group_users",
 				Columns:    []*schema.Column{GroupUsersColumns[2]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "group_users_users_group_users",

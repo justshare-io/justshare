@@ -10,7 +10,7 @@ import {KubesService} from "@/rpc/kubes/kubes_connect";
 export const baseURL = process.env.BASE_URL;
 
 export const transport = createConnectTransport({
-  baseUrl: `${baseURL}/api` || 'error',
+  baseUrl: `/api`,
   // credentials: "include",
 });
 
@@ -20,3 +20,12 @@ export const userService = createPromiseClient(UserService, transport);
 export const chatService = createPromiseClient(ChatService, transport);
 export const eventService = createPromiseClient(EventService, transport);
 export const kubesService = createPromiseClient(KubesService, transport);
+
+// extension needs full url to connect to the server
+export const extTransport = createConnectTransport({
+  baseUrl: `${baseURL}/api` || 'error',
+  // credentials: "include",
+});
+
+export const extUserService = createPromiseClient(UserService, extTransport);
+export const extContentService = createPromiseClient(ContentService, extTransport);

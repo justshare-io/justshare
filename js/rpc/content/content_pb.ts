@@ -1161,6 +1161,43 @@ export class Content extends Message<Content> {
 }
 
 /**
+ * @generated from message content.FileUploadResponse
+ */
+export class FileUploadResponse extends Message<FileUploadResponse> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  constructor(data?: PartialMessage<FileUploadResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "content.FileUploadResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FileUploadResponse {
+    return new FileUploadResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FileUploadResponse {
+    return new FileUploadResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FileUploadResponse {
+    return new FileUploadResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FileUploadResponse | PlainMessage<FileUploadResponse> | undefined, b: FileUploadResponse | PlainMessage<FileUploadResponse> | undefined): boolean {
+    return proto3.util.equals(FileUploadResponse, a, b);
+  }
+}
+
+/**
  * @generated from message content.AudioVideo
  */
 export class AudioVideo extends Message<AudioVideo> {

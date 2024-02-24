@@ -1,5 +1,5 @@
 /// <reference types="chrome"/>
-import {contentService, projectService, userService} from "@/service";
+import {extContentService, extUserService} from "@/service";
 import {contentGet, contentSave, historyDelete, historyGet, TabContent} from "./shared";
 import { Content } from "@/rpc/content/content_pb";
 import HttpHeader = chrome.webRequest.HttpHeader;
@@ -59,7 +59,7 @@ const setHistory = async (h: History) => {
 
 async function saveContent(content: Content) {
     try {
-        const resp = await contentService.save({
+        const resp = await extContentService.save({
             content: content,
             related: []
         });
@@ -85,7 +85,7 @@ function extractUuidFromUrl(url: string): string | null {
 const chromeExt = () => {
     (
         async () => {
-            const resp = await userService.login({}, {});
+            const resp = await extUserService.login({}, {});
             // TODO breadchris I think this has the whitelist config in it
             console.log(resp);
         }

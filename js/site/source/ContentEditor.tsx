@@ -45,7 +45,7 @@ import {
 import "@blocknote/react/style.css";
 import {CommandMenu} from "@/components/CommandMenu";
 import {JustShareSideMenu} from "@/components/JustShareSideMenu";
-import {AIBlock, blockSchema, CodeBlock, insertCode} from "@/source/editors/CodeBlock";
+import {AIBlock, Blockquote, blockSchema, CodeBlock, insertBlockquote, insertCode} from "@/source/editors/CodeBlock";
 import {RiText} from "react-icons/ri";
 import {last} from "slate";
 
@@ -222,6 +222,18 @@ export const ContentEditor: React.FC<{}> = ({}) => {
 
             let prevDepth = -1;
             let count = 0;
+            const insertLine = (text: string) => {
+                const newBlocks = editor.insertBlocks(
+                    [
+                        {
+                            content: text,
+                        },
+                    ],
+                    lastBlock,
+                    count === 0 ? "nested" : "after"
+                );
+                return newBlocks[0];
+            }
             for await (const exec of res) {
                 // keep collecting until a newline is found
                 content += exec.text;
@@ -229,16 +241,7 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                     const depth = countIndentationDepth(content);
                     content = content.trim()
 
-                    const newBlocks = editor.insertBlocks(
-                        [
-                            {
-                                content: content,
-                            },
-                        ],
-                        lastBlock,
-                        count === 0 ? "nested" : "after"
-                    );
-                    lastBlock = newBlocks[0];
+                    lastBlock = insertLine(content);
                     content = '';
                     prevDepth = depth;
                     count += 1;
@@ -263,7 +266,8 @@ export const ContentEditor: React.FC<{}> = ({}) => {
 
         if (elementBottomPosition > (viewportHeight - navHeight)) {
             const scrollAmount = elementBottomPosition - viewportHeight + navHeight;
-            window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+            // TODO breadchris unexpected scrolls when the page is not at the bottom
+            // window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
         }
     }
 
@@ -380,12 +384,14 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         blockSpecs: {
             ...defaultBlockSpecs,
             // codeBlock: CodeBlock,
-            aiBlock: AIBlock,
+            // aiBlock: AIBlock,
+            blockquote: Blockquote,
         },
         slashMenuItems: [
             ...getDefaultReactSlashMenuItems(blockSchema),
             // insertCode,
             insertAI,
+            insertBlockquote,
         ],
         onEditorContentChange: onEditorContentChange,
         onEditorReady: (editor) => {
@@ -447,15 +453,6 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                     </button>
                 </div>
                 {editor && <ContentTypeEditor content={content} onUpdate={editContent} editor={editor} />}
-                {/*<Splide aria-label="referenced content" options={{*/}
-                {/*    perPage: 3,*/}
-                {/*}}>*/}
-                {/*    {relatedContent.map((src) => (*/}
-                {/*        <SplideSlide>*/}
-                {/*            <img src={src} />*/}
-                {/*        </SplideSlide>*/}
-                {/*    ))}*/}
-                {/*</Splide>*/}
                 <dialog id="my_modal_1" className="modal" ref={settingsModal}>
                     <div className="modal-box">
                         {fields && <Form fields={fields} />}
@@ -501,8 +498,7 @@ const BottomNav: React.FC<{
    }
 
    return (
-       <div className="btm-nav">
-           <ContentDrawer />
+       <div className="btm-nav z-50">
            <Modal open={newContent} onClose={onNewClose}>
                <div className="flex flex-col">
                    <div className={"flex flex-row space-y-2"}>
@@ -542,11 +538,11 @@ const BottomNav: React.FC<{
                    <button className={"btn"} onClick={() => setAddingTag(false)}>close</button>
                </div>
             </Modal>
-           <button onClick={() => setNewContent(true)}>
-               <PlusIcon className="h-6 w-6" />
-           </button>
            <button onClick={() => setAddingTag(true)}>
                <TagIcon className="h-6 w-6" />
+           </button>
+           <button onClick={() => setNewContent(true)}>
+               <PlusIcon className="h-6 w-6" />
            </button>
            {actionRunning && (
                <button onClick={onStop}>
@@ -556,6 +552,7 @@ const BottomNav: React.FC<{
            <button onClick={onSend}>
                <PaperAirplaneIcon className="h-6 w-6" />
            </button>
+           <ContentDrawer />
        </div>
    )
 }

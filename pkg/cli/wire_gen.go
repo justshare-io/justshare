@@ -79,7 +79,7 @@ func Wire() (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	whisperClient := whisper.NewClient(whisperConfig, openaiConfig, bucketBucket)
+	whisperClient := whisper.NewClient(whisperConfig, openaiConfig, builder)
 	normalizeNormalize := normalize.New(builder, bucketBucket, whisperClient, entStore)
 	service := content.NewService(entStore, sessionManager, agent, normalizeNormalize, bucketBucket, builder, whisperClient)
 	groupEntStore := group.NewEntStore(client)
@@ -100,11 +100,11 @@ func Wire() (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	kubesService, err := kubes.New(kubesConfig, openaiConfig)
+	kubesService, err := kubes.New(kubesConfig, openaiConfig, contentConfig)
 	if err != nil {
 		return nil, err
 	}
-	apihttpServer := server.New(contentConfig, service, bucketBucket, sessionManager, userService, chatService, eventService, kubesService)
+	apihttpServer := server.New(contentConfig, service, builder, sessionManager, userService, chatService, eventService, kubesService)
 	app := NewApp(logLog, apihttpServer)
 	return app, nil
 }

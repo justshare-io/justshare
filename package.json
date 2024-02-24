@@ -55,6 +55,7 @@
     "react-icons": "^4.8.0",
     "react-markdown": "^8.0.7",
     "react-player": "^2.13.0",
+    "react-reader": "^2.0.9",
     "react-router-dom": "^6.11.0",
     "react-youtube": "^10.1.0",
     "rrweb": "^2.0.0-alpha.4",

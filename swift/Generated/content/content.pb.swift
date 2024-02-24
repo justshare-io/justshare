@@ -624,6 +624,18 @@ public struct Content_Content {
   public init() {}
 }
 
+public struct Content_FileUploadResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var url: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Content_AudioVideo {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1156,6 +1168,7 @@ extension Content_StoredContent: @unchecked Sendable {}
 extension Content_Edge: @unchecked Sendable {}
 extension Content_Content: @unchecked Sendable {}
 extension Content_Content.OneOf_Type: @unchecked Sendable {}
+extension Content_FileUploadResponse: @unchecked Sendable {}
 extension Content_AudioVideo: @unchecked Sendable {}
 extension Content_Slice: @unchecked Sendable {}
 extension Content_Post: @unchecked Sendable {}
@@ -2447,6 +2460,38 @@ extension Content_Content: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if lhs.uri != rhs.uri {return false}
     if lhs.id != rhs.id {return false}
     if lhs.type != rhs.type {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Content_FileUploadResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".FileUploadResponse"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "url"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.url) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.url.isEmpty {
+      try visitor.visitSingularStringField(value: self.url, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Content_FileUploadResponse, rhs: Content_FileUploadResponse) -> Bool {
+    if lhs.url != rhs.url {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

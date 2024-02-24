@@ -165,12 +165,16 @@ func (s *Service) Login(ctx context.Context, c *connectgo.Request[user.User]) (*
 		if cfg == nil {
 			cfg = &user.Config{}
 		}
+		// TODO breadchris is there a better place for this?
 		cfg.OfflineVoice = s.config.OfflineVoice == "true"
 		return &user.User{
 			Email:  u.Email,
 			Config: cfg,
 		}
 	}
+
+	expires := s.sess.Lifetime.Milliseconds()
+
 	if id, err := s.sess.GetUserID(ctx); err == nil {
 		u, err := s.user.GetUserByID(ctx, id)
 		if err != nil {
@@ -179,6 +183,7 @@ func (s *Service) Login(ctx context.Context, c *connectgo.Request[user.User]) (*
 		return connectgo.NewResponse(&user.LoginResponse{
 			Success: true,
 			User:    getUser(u),
+			Expires: expires,
 		}), nil
 	}
 
@@ -193,6 +198,7 @@ func (s *Service) Login(ctx context.Context, c *connectgo.Request[user.User]) (*
 	return connectgo.NewResponse(&user.LoginResponse{
 		Success: true,
 		User:    getUser(u),
+		Expires: expires,
 	}), nil
 }
 
@@ -315,6 +321,9 @@ func (s *Service) userGroupRole(ctx context.Context, groupID string) (string, er
 	}
 
 	for _, g := range groups {
+		if g.Edges.Group == nil {
+			continue
+		}
 		if g.Edges.Group.ID.String() == groupID {
 			return g.Role, nil
 		}

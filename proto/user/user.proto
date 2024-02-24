@@ -3,6 +3,7 @@ syntax = "proto3";
 package user;
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 service UserService {
   rpc Register(User) returns (User);
@@ -57,6 +58,12 @@ message User {
   Config config = 4;
 }
 
+message Usage {
+  string user_id = 1;
+  int64 database_storage_used = 2;
+  int64 file_storage_used = 3;
+}
+
 message Group {
   string id = 1;
   string name = 2;
@@ -71,4 +78,5 @@ message Config {
 message LoginResponse {
   User user = 1;
   bool success = 2;
+  int64 expires = 3;
 }

@@ -49,6 +49,16 @@
       <li><a href="{{ .Permalink }}">{{ .LinkTitle }}</a></li>
       {{- end }}
     </ul>
+    <form
+            action="https://buttondown.email/api/emails/embed-subscribe/breadchris"
+            method="post"
+            target="popupwindow"
+            onsubmit="window.open('https://buttondown.email/breadchris', 'popupwindow')"
+            class="embeddable-buttondown-form"
+    >
+      <input class="input" type="email" name="email" id="bd-input" placeholder="join the email list" />
+      <input class="btn" type="submit" id="bd-submit" value="Subscribe" />
+    </form>
     {{- if (.Param "ShowPostNavLinks") }}
     {{- partial "post_nav_links.html" . }}
     {{- end }}

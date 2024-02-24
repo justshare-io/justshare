@@ -29,7 +29,7 @@ func (s *Builder) Build() (string, error) {
 }
 
 func (s *Builder) File(name string) (string, error) {
-	return path.Join(s.path, name), EnsureDirExists(s.path)
+	return path.Join(s.path, path.Clean(name)), EnsureDirExists(s.path)
 }
 
 func NewBuilder(config Config) (*Builder, error) {

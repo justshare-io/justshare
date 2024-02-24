@@ -20,6 +20,7 @@ func (s *Service) Infer(ctx context.Context, r *connect_go.Request[content.Infer
 	}
 
 	var resErr error
+	// TODO breadchris without generics this is error prone code
 	<-obs.ForEach(func(item any) {
 		s, ok := item.(string)
 		if !ok {

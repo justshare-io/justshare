@@ -89,6 +89,8 @@ func (s *Blog) Publish(b *bucket.Builder, site *content.Site, sections []BlogSec
 				if err = writeFile(sl+".md", []byte(sb)); err != nil {
 					return err
 				}
+			case *content.Content_ChatgptConversation:
+				//t.ChatgptConversation.Mapping
 			}
 		}
 	}
@@ -140,6 +142,70 @@ func (s *Blog) Publish(b *bucket.Builder, site *content.Site, sections []BlogSec
 	}
 
 	return nil
+}
+
+type Message struct {
+	Author    string
+	TextParts []string
+}
+
+type Node struct {
+	ID       string
+	Parent   *string
+	Children []string
+	Message  *Message
+}
+
+type Conversation struct {
+	Mapping map[string]Node
+}
+
+// Function to initialize the path through the conversation from the root node
+func initPath(conversation *Conversation, initialKey string) []string {
+	var path []string
+	currentKey := initialKey
+
+	for currentKey != "" && len(conversation.Mapping[currentKey].Children) > 0 {
+		path = append(path, currentKey)
+		currentKey = conversation.Mapping[currentKey].Children[0] // Select the first child
+	}
+
+	// Include the last node with no children
+	if currentKey != "" {
+		path = append(path, currentKey)
+	}
+
+	return path
+}
+
+// Function to update the path based on a selected sibling
+func selectSibling(conversation *Conversation, nodeKey string, path []string, level int) []string {
+	return initPath(conversation, nodeKey)
+}
+
+// Function to process and print the conversation based on the path
+func processConversation(conversation *Conversation) {
+	root := ""
+	for k, v := range conversation.Mapping {
+		if v.Parent == nil {
+			root = k
+			break
+		}
+	}
+
+	if root == "" {
+		fmt.Println("No root node found")
+		return
+	}
+
+	path := initPath(conversation, root)
+
+	for _, nodeKey := range path {
+		node := conversation.Mapping[nodeKey]
+		if node.Message != nil {
+			fmt.Printf("Node ID: %s, Author: %s, Message: %s\n", node.ID, node.Message.Author, node.Message.TextParts)
+		}
+	}
 }
 
 func marshalArticleWithContent(article Article, content string) (string, error) {

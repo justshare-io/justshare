@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/bufbuild/connect-go"
 	"github.com/google/wire"
+	"github.com/justshare-io/justshare/pkg/content"
 	"github.com/justshare-io/justshare/pkg/gen/kubes"
 	"github.com/justshare-io/justshare/pkg/gen/kubes/kubesconnect"
 	"github.com/justshare-io/justshare/pkg/providers/openai"
@@ -32,12 +33,18 @@ type Service struct {
 	c Config
 	// TODO breadchris process should load config from file
 	oc        openai.Config
+	cc        content.Config
 	clientSet *kubernetes.Clientset
 }
 
+const (
+	configMapName = "gcs-config"
+	port          = int32(80)
+)
+
 var _ kubesconnect.KubesServiceHandler = (*Service)(nil)
 
-func New(c Config, oc openai.Config) (*Service, error) {
+func New(c Config, oc openai.Config, cc content.Config) (*Service, error) {
 	if !c.Enabled {
 		slog.Warn("kubes service is disabled")
 		return nil, nil
@@ -59,6 +66,7 @@ func New(c Config, oc openai.Config) (*Service, error) {
 	return &Service{
 		c:         c,
 		oc:        oc,
+		cc:        cc,
 		clientSet: clientset,
 	}, nil
 }
@@ -76,7 +84,7 @@ func (s *Service) BuildImage(ctx context.Context, c *connect.Request[kubes.Build
 
 // TODO breadchris check user
 func (s *Service) UpdateDeployment(ctx context.Context, c *connect.Request[kubes.UpdateDeploymentRequest]) (*connect.Response[kubes.UpdateDeploymentResponse], error) {
-	deployment, err := s.clientSet.AppsV1().Deployments(s.c.DefaultNamespace).Get(ctx, c.Msg.Name, metav1.GetOptions{})
+	_, err := s.clientSet.AppsV1().Deployments(s.c.DefaultNamespace).Get(ctx, c.Msg.Name, metav1.GetOptions{})
 	if err != nil {
 		if kerrors.IsNotFound(err) {
 			return nil, fmt.Errorf("deployment %s in namespace %s not found", c.Msg.Name, s.c.DefaultNamespace)
@@ -89,12 +97,9 @@ func (s *Service) UpdateDeployment(ctx context.Context, c *connect.Request[kubes
 		return nil, err
 	}
 
-	// TODO breadchris possibly multiple containers
-	for i := range deployment.Spec.Template.Spec.Containers {
-		deployment.Spec.Template.Spec.Containers[i].Image = container
-	}
+	d := NewDeployment(container, c.Msg.Name, configMapName, port, s.oc, s.cc)
 
-	_, err = s.clientSet.AppsV1().Deployments(s.c.DefaultNamespace).Update(ctx, deployment, metav1.UpdateOptions{})
+	_, err = s.clientSet.AppsV1().Deployments(s.c.DefaultNamespace).Update(ctx, d, metav1.UpdateOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update deployment: %v", err)
 	}
@@ -154,7 +159,6 @@ func serviceName(name string) string {
 }
 
 func (s *Service) NewDeployment(ctx context.Context, c *connect.Request[kubes.NewDeploymentRequest]) (*connect.Response[kubes.NewDeploymentResponse], error) {
-	port := int32(80)
 	name := deploymentName(c.Msg.Name)
 	service := serviceName(name)
 	domain := hostName(name)
@@ -169,7 +173,6 @@ func (s *Service) NewDeployment(ctx context.Context, c *connect.Request[kubes.Ne
 		return nil, fmt.Errorf("invalid service name: %s", name)
 	}
 
-	configMapName := "gcs-config"
 	b, err := os.ReadFile(s.c.GcsAccount)
 	if err != nil {
 		return nil, err
@@ -188,7 +191,7 @@ func (s *Service) NewDeployment(ctx context.Context, c *connect.Request[kubes.Ne
 	//}
 
 	slog.Debug("creating deployment", "name", name, "namespace", namespace, "image", s.c.Container)
-	_, err = s.newDeployment(ctx, namespace, NewDeployment(s.c.Container, name, configMapName, port, s.oc))
+	_, err = s.newDeployment(ctx, namespace, NewDeployment(s.c.Container, name, configMapName, port, s.oc, s.cc))
 	if err != nil {
 		return nil, err
 	}

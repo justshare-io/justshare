@@ -40,13 +40,13 @@ import (
 type APIHTTPServer struct {
 	config         content.Config
 	contentService *content.Service
-	bucket         *bucket.Bucket
 	sessionManager *shttp.SessionManager
 	userService    *user.Service
 	chatService    *chat.Service
 	eventService   *event.Service
 	kubesService   *kubes.Service
 	handler        *gothic.Handler
+	builder        *bucket.Builder
 }
 
 var (
@@ -67,7 +67,7 @@ var (
 func New(
 	config content.Config,
 	apiServer *content.Service,
-	bucket *bucket.Bucket,
+	builder *bucket.Builder,
 	sessionManager *shttp.SessionManager,
 	userService *user.Service,
 	chatService *chat.Service,
@@ -77,7 +77,7 @@ func New(
 	return &APIHTTPServer{
 		config:         config,
 		contentService: apiServer,
-		bucket:         bucket,
+		builder:        builder,
 		sessionManager: sessionManager,
 		userService:    userService,
 		chatService:    chatService,
@@ -168,8 +168,12 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 	fs := http.FS(site.Assets)
 	httpFileServer := http.FileServer(fs)
 
-	// TODO breachris this should come from bucket
-	f := http.FS(os.DirFS("data"))
+	// TODO breachris this should come from builder
+	d, err := a.builder.Dir("upload").Build()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to build upload directory")
+	}
+	f := http.FS(os.DirFS(d))
 	mediaFileServer := http.FileServer(f)
 
 	// TODO breadchris brittle path
@@ -183,6 +187,8 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 	proxy := httputil.NewSingleHostReverseProxy(u)
 
 	muxRoot := http.NewServeMux()
+
+	muxRoot.HandleFunc("/upload", a.fileUploadHandler)
 
 	muxRoot.HandleFunc("/webhook", func(w http.ResponseWriter, r *http.Request) {
 		// dump http request
@@ -216,8 +222,8 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 			}))).ServeHTTP(w, r)
 			return
 		}
-		if r.URL.Path == "/media" || strings.HasPrefix(r.URL.Path, "/media/") {
-			r.URL.Path = strings.Replace(r.URL.Path, "/media", "", 1)
+		if r.URL.Path == "/upload" || strings.HasPrefix(r.URL.Path, "/upload/") {
+			r.URL.Path = strings.Replace(r.URL.Path, "/upload", "", 1)
 			mediaFileServer.ServeHTTP(w, r)
 			return
 		}
@@ -252,7 +258,7 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 	})
 
 	// TODO breadchris enable/disable based on if we are in dev mode
-	//bucketRoute, handler := a.bucket.HandleSignedURLs()
+	//bucketRoute, handler := a.builder.HandleSignedURLs()
 	//muxRoot.Handle(bucketRoute, handler)
 	return a.sessionManager.LoadAndSave(a.loggingMiddleware(muxRoot)), nil
 }

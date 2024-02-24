@@ -20,13 +20,17 @@ export const useSources = () => {
     const [tags, setTags] = useAtom(tagsAtom);
 
     const getSources = async () => {
-        const resp = await contentService.getSources({
-            contentTypes: types,
-            tags,
-        });
-        setSources(resp.sources);
-        if (resp.sources.length > 0) {
-            setSelected(resp.sources[0]);
+        try {
+            const resp = await contentService.getSources({
+                contentTypes: types,
+                tags,
+            });
+            setSources(resp.sources);
+            if (resp.sources.length > 0) {
+                setSelected(resp.sources[0]);
+            }
+        } catch (e) {
+            console.error('failed to get sources', e);
         }
     };
     return {sources, selected, setSelected, getSources, types, setTypes, tags, setTags};

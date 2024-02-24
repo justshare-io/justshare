@@ -42,6 +42,34 @@ export const CodeBlock = createReactBlockSpec(
     }
 );
 
+// blockquote block
+export const Blockquote = createReactBlockSpec(
+    {
+        type: "blockquote",
+        propSchema: {
+            ...defaultProps,
+            cite: {
+                default: "",
+            },
+        },
+        content: "inline",
+    },
+    {
+        render: ({ block, contentRef }) => {
+            return (
+                <blockquote ref={contentRef} cite={block.props.cite} />
+            );
+        },
+        parse: (element) => {
+            const cite = element.getAttribute("cite");
+
+            return {
+                cite: cite || undefined,
+            };
+        },
+    }
+);
+
 export const AIBlock = createReactBlockSpec(
     {
         type: "aiBlock",
@@ -55,8 +83,9 @@ export const AIBlock = createReactBlockSpec(
     },
     {
         render: ({ block, contentRef }) => {
+            console.log("block", block, contentRef)
             return (
-                <p id={"ai-result"}>{block.props.result}</p>
+                <p id={"ai-result"} />
             );
         },
         toExternalHTML: ({ contentRef }) => <div ref={contentRef} />,
@@ -80,6 +109,7 @@ export const blockSchema = {
     // Adds the font paragraph.
     codeBlock: CodeBlock.config,
     aiBlock: AIBlock.config,
+    blockquote: Blockquote.config,
 };
 
 // Creates a slash menu item for inserting a font paragraph block.
@@ -102,22 +132,21 @@ export const insertCode: ReactSlashMenuItem<typeof blockSchema> = {
     icon: <RiText />,
 };
 
-export const insertAI: ReactSlashMenuItem<typeof blockSchema> = {
-    name: "Ask AI",
+export const insertBlockquote: ReactSlashMenuItem<typeof blockSchema> = {
+    name: "Insert Blockquote",
     execute: (editor) => {
-        // editor.insertBlocks(
-        //     [
-        //         {
-        //             type: "aiBlock",
-        //             props: {},
-        //         },
-        //     ],
-        //     editor.getTextCursorPosition().block,
-        //     "after"
-        // );
-        console.log(editor.getTextCursorPosition().block.content);
+        editor.insertBlocks(
+            [
+                {
+                    type: "blockquote",
+                    props: {},
+                },
+            ],
+            editor.getTextCursorPosition().block,
+            "after"
+        );
     },
-    aliases: ["ai"],
+    aliases: ["blockquote"],
     group: "Other",
     icon: <RiText />,
 };

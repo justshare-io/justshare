@@ -2,6 +2,7 @@ package kubes
 
 import (
 	"fmt"
+	"github.com/justshare-io/justshare/pkg/content"
 	"github.com/justshare-io/justshare/pkg/providers/openai"
 	"github.com/justshare-io/justshare/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
@@ -9,7 +10,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewDeployment(container, name, configMapName string, port int32, oc openai.Config) *appsv1.Deployment {
+func NewDeployment(
+	container,
+	name,
+	configMapName string,
+	port int32,
+	oc openai.Config,
+	cc content.Config,
+) *appsv1.Deployment {
 	mountDir := "/config"          // Directory where the file will be mounted
 	fileName := "gcs_account.json" // Name of the file in the ConfigMap
 	mountPath := fmt.Sprintf("%s/%s", mountDir, fileName)
@@ -72,6 +80,9 @@ func NewDeployment(container, name, configMapName string, port int32, oc openai.
 									ContainerPort: port,
 								},
 							},
+							// TODO breadchris make sure required environment variables are present
+							// there was a case where the google client_id was missing
+							// there should be a way to mount a file for config and call it a day
 							Env: []corev1.EnvVar{
 								{
 									Name:  "PORT",
@@ -94,12 +105,26 @@ func NewDeployment(container, name, configMapName string, port int32, oc openai.
 									Value: "justshare-backup",
 								},
 								{
+									Name:  "GOOGLE_CLIENT_ID",
+									Value: cc.GoogleClientID,
+								},
+								{
+									Name:  "GOOGLE_CLIENT_SECRET",
+									Value: cc.GoogleClientSecret,
+								},
+								{
 									Name:  "GOOGLE_APPLICATION_CREDENTIALS",
 									Value: mountPath,
 								},
 								{
 									Name:  "OPENAI_API_KEY",
 									Value: oc.APIKey,
+								},
+								{
+									Name: "EXTERNAL_URL",
+									// TODO breadchris need to configure production config
+									//Value: cc.ExternalURL,
+									Value: "https://justshare.io",
 								},
 							},
 							VolumeMounts: volumeMounts,

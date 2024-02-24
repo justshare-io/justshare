@@ -25,6 +25,7 @@ require (
 	github.com/dominikbraun/graph v0.23.0
 	github.com/dustinkirkland/golang-petname v0.0.0-20231002161417-6a283f1aaaf2
 	github.com/ergochat/ergo v1.2.1-0.20240114224234-d97e964b35a2
+	github.com/fsnotify/fsnotify v1.7.0
 	github.com/fsouza/go-dockerclient v1.10.2
 	github.com/geziyor/geziyor v0.0.0-20230315135110-a242b58aaa65
 	github.com/go-audio/wav v1.1.0
@@ -56,7 +57,7 @@ require (
 	github.com/slack-go/slack v0.12.3
 	github.com/smacker/go-tree-sitter v0.0.0-20231219031718-233c2f923ac7
 	github.com/tmc/langchaingo v0.0.0-20230910230029-9c8845b2b019
-	github.com/twilio/twilio-go v1.13.0
+	github.com/twilio/twilio-go v1.18.0
 	github.com/u2takey/ffmpeg-go v0.4.1
 	github.com/urfave/cli/v2 v2.27.1
 	github.com/yuin/goldmark v1.6.0
@@ -76,6 +77,7 @@ require (
 	k8s.io/apimachinery v0.27.1
 	k8s.io/client-go v0.27.1
 	mvdan.cc/xurls/v2 v2.5.0
+	rogchap.com/v8go v0.9.0
 )
 
 require (
@@ -134,7 +136,6 @@ require (
 	github.com/docker/docker v25.0.3+incompatible // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815 // indirect
 	github.com/dop251/goja v0.0.0-20230812105242-81d76064690d // indirect
 	github.com/emicklei/go-restful/v3 v3.10.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
@@ -143,7 +144,6 @@ require (
 	github.com/ergochat/irc-go v0.4.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/fatih/set v0.2.1 // indirect
-	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fullstorydev/grpcurl v1.8.7 // indirect
 	github.com/gigawattio/window v0.0.0-20180317192513-0f5467e35573 // indirect
 	github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2 // indirect

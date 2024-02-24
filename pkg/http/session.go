@@ -22,6 +22,10 @@ type SessionManager struct {
 
 func NewSession(client *ent.Client) (*SessionManager, error) {
 	s := scs.New()
+
+	// TODO breadchris make this configurable
+	s.Lifetime = 60 * 60 * 24 * 7
+
 	var err error
 	if s.Store, err = NewEntStore(client); err != nil {
 		return nil, err

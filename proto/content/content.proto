@@ -175,6 +175,10 @@ message Content {
   };
 }
 
+message FileUploadResponse {
+  string url = 1;
+}
+
 message AudioVideo {
   string file = 1;
   repeated Slice slices = 2;

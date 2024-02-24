@@ -4,13 +4,16 @@ import {baseURL, userService} from "@/service";
 import toast from "react-hot-toast";
 import {useAuth} from "@/auth/state";
 import {Modal} from "@/components/modal";
+import {ShareIcon} from "@heroicons/react/24/outline";
 
 export const GroupDialog: React.FC<{open: boolean, onClose: () => void}> = ({open, onClose}) => {
     return (
         <Modal open={open} onClose={onClose}>
             <h3 className="font-bold text-lg">Groups</h3>
             <GroupManager />
-            <button className="btn" onClick={onClose}>close</button>
+            <div className="flex justify-end">
+                <button className="btn" onClick={onClose}>close</button>
+            </div>
         </Modal>
     )
 }
@@ -20,10 +23,10 @@ const GroupMenu: React.FC<{id: string, setInvite: (invite: string) => void}> = (
     const deleteGroup = async () => {
         try {
             const res = await userService.deleteGroup({id})
-            toast.success('Deleted group');
+            toast.success('deleted group');
             loadGroups();
         } catch (e: any) {
-            toast.error('Failed to delete group');
+            toast.error('failed to delete group');
             console.error(e);
         }
     }
@@ -32,17 +35,17 @@ const GroupMenu: React.FC<{id: string, setInvite: (invite: string) => void}> = (
             const res = await userService.createGroupInvite({
                 groupId: id,
             })
-            toast.success('Created invite');
+            toast.success('created invite');
             setInvite(`${baseURL}/app/group/join/${res.secret}`);
         } catch (e: any) {
-            toast.error('Failed to create invite');
+            toast.error('failed to create invite');
             console.error(e);
         }
     }
     return (
         <div className="dropdown dropdown-end">
             <label tabIndex={0} className="btn m-1">
-                TODO
+                <ShareIcon className="h-5 w-5" />
             </label>
             <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
                 <li><button className={"btn"} onClick={createInvite}>Invite</button></li>
@@ -56,6 +59,11 @@ const GroupManager = () => {
     const {groups, loadGroups} = useAuth();
     const [name, setName] = useState<string>('');
     const [invite, setInvite] = useState<string|undefined>(undefined);
+
+    useEffect(() => {
+        void loadGroups();
+    }, []);
+
     const addGroup = async () => {
         try {
             const res = await userService.createGroup({name})
@@ -74,16 +82,18 @@ const GroupManager = () => {
             </div>
             {invite && <a href={invite} className="link">{invite}</a>}
             <div className="divider"></div>
-            <div className="grid grid-cols-1 gap-4">
+            <ul className="space-y-4">
                 {groups.map((g) => (
-                    <div key={g.id} className="card card-bordered">
-                        <div className="card-body">
-                            <h2 className="card-title">{g.name}</h2>
+                    <li key={g.id} className={"flex justify-between"}>
+                        <div className={"flex min-w-0 gap-x-4"}>
+                            {g.name}
+                        </div>
+                        <div className={"shrink-0 sm:flex sm:flex-col sm:items-end"}>
                             <GroupMenu id={g.id} setInvite={setInvite} />
                         </div>
-                    </div>
+                    </li>
                 ))}
-            </div>
+            </ul>
         </div>
     );
 }

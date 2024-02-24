@@ -18,7 +18,10 @@ func NewDefaultConfig() Config {
 		Port:  "${PORT:\"8000\"}",
 		Proxy: "${PROXY:\"\"}",
 		// TODO breadchris this should be something else
-		SessionSecret: "${:\"secret\"}",
+		SessionSecret:      "${:\"secret\"}",
+		GoogleClientID:     "${GOOGLE_CLIENT_ID:\"\"}",
+		GoogleClientSecret: "${GOOGLE_CLIENT_SECRET:\"\"}",
+		ExternalURL:        "${EXTERNAL_URL:\"\"}",
 	}
 }
 

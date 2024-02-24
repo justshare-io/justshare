@@ -12,7 +12,7 @@ import (
 	"path"
 )
 
-func splitWAVFile(fileStore *bucket.Bucket, id string, filepath string, maxFileSize int, cb func(string) error) error {
+func splitWAVFile(builder *bucket.Builder, id string, filepath string, maxFileSize int, cb func(string) error) error {
 	// average header size plus some padding
 	// TODO breadchris figure out how to calculate this
 	headerSize := 44 + 1024
@@ -35,7 +35,8 @@ func splitWAVFile(fileStore *bucket.Bucket, id string, filepath string, maxFileS
 
 	chunks := int(math.Ceil(float64(frameCount) / float64(maxSamplesPerChunk)))
 
-	d, err := fileStore.NewDir(id + "_chunks")
+	bd := builder.Dir(id + "_chunks")
+	_, err = bd.Build()
 	if err != nil {
 		return errors.Wrapf(err, "failed to create bucket dir for file %s", filepath)
 	}
@@ -47,8 +48,11 @@ func splitWAVFile(fileStore *bucket.Bucket, id string, filepath string, maxFileS
 			end = frameCount
 		}
 
-		bucketFile := path.Join(d, fmt.Sprintf("chunk_%d.wav", i))
-		outFile, err := os.Create(bucketFile)
+		fp, err := bd.File(fmt.Sprintf("chunk_%d.wav", i))
+		if err != nil {
+			return errors.Wrapf(err, "failed to create file for chunk %d", i)
+		}
+		outFile, err := os.Create(fp)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create file")
 		}
@@ -68,7 +72,7 @@ func splitWAVFile(fileStore *bucket.Bucket, id string, filepath string, maxFileS
 			return err
 		}
 
-		err = cb(bucketFile)
+		err = cb(fp)
 		if err != nil {
 			return err
 		}

@@ -1,27 +1,67 @@
 import {atom, useAtom} from "jotai/index";
-import {Group, Groups, User} from "@/rpc/user/user_pb";
+import {Group, Groups, LoginResponse, User} from "@/rpc/user/user_pb";
 import {userService} from "@/service";
 import toast from "react-hot-toast";
 
-const userAtom = atom<User|undefined>(undefined);
-userAtom.debugLabel = 'userAtom';
+const userKey = 'user';
+
+const newLoginResponseAtom = () => {
+    const getInitialValue = () => {
+        const item = localStorage.getItem(userKey)
+        if (item !== null) {
+            try {
+                return LoginResponse.fromJsonString(item);
+            } catch (e) {
+                console.error('failed to parse user from localstorage', e)
+                localStorage.removeItem(userKey);
+            }
+        }
+        return undefined;
+    }
+    const baseAtom = atom(getInitialValue())
+    return atom(
+        (get) => get(baseAtom),
+        (get, set, update) => {
+            const nextValue: LoginResponse =
+                typeof update === 'function' ? update(get(baseAtom)) : update
+            set(baseAtom, nextValue)
+            if (nextValue) {
+                try {
+                    localStorage.setItem(userKey, nextValue.toJsonString())
+                } catch (e) {
+                    console.error('failed to save user to localstorage', e)
+                }
+            } else {
+                localStorage.removeItem(userKey);
+            }
+        },
+    )
+}
+
+const loginResponseAtom = newLoginResponseAtom();
+loginResponseAtom.debugLabel = 'loginResponseAtom';
+
 const groupsAtom = atom<Group[]>([]);
 groupsAtom.debugLabel = 'groupsAtom';
 
 export const useAuth = () => {
-    const [user, setUser] = useAtom(userAtom);
+    const [loginResponse, setLoginResponse] = useAtom(loginResponseAtom);
     const [groups, setGroups] = useAtom(groupsAtom);
 
     const loadGroups = async () => {
-        const res = await userService.getGroups({});
-        setGroups(res.groups);
+        try {
+            const res = await userService.getGroups({});
+            setGroups(res.groups);
+        } catch (e) {
+            console.error('failed to load groups', e)
+        }
     }
 
     const logout = async () => {
         try {
             // TODO breadchris save content to group
             const resp = await userService.logout({});
-            setUser(undefined);
+            setLoginResponse(undefined);
             console.log(resp);
             toast.success('Logged out');
         } catch (e) {
@@ -34,7 +74,7 @@ export const useAuth = () => {
         try {
             // TODO breadchris save content to group
             const resp = await userService.login({email, password});
-            setUser(resp.user);
+            setLoginResponse(resp);
             toast.success('Logged in');
         } catch (e) {
             toast.error('Failed to login');
@@ -48,7 +88,7 @@ export const useAuth = () => {
                 email,
                 password,
             });
-            setUser(res);
+            setLoginResponse(res);
             toast.success('Successfully registered!');
         } catch (e: any) {
             console.error(e);
@@ -61,12 +101,14 @@ export const useAuth = () => {
             const res = await userService.login({});
             // TODO breadchris should login throw if not logged in?
             if (res.success) {
-                setUser(res.user);
+                setLoginResponse(res);
+            } else {
+                setLoginResponse(undefined);
             }
         } catch (e: any) {
             console.error(e);
             toast.error('Failed to login: ' + e.message);
         }
     }
-    return {user, register, tryLogin, login, logout, loadGroups, groups};
+    return {user: loginResponse?.user, loginResponse, register, tryLogin, login, logout, loadGroups, groups};
 }

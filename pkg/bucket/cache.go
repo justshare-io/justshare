@@ -8,7 +8,8 @@ import (
 )
 
 func EnsureDirExists(p string) error {
-	if _, err := os.Stat(p); os.IsNotExist(err) {
+	dir, _ := path.Split(p)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(p, 0700); err != nil {
 			return errors.Wrapf(err, "could not create folder: %v", p)
 		}

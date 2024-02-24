@@ -141,53 +141,142 @@ span.rsjv-value {
   color: currentColor;
 }
 
-/*.btm-nav > *:not(.active) {*/
-/*  padding-top: 0.125rem;*/
-/*}*/
+.content-nav > * {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-basis: 100%;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border-color: currentColor;
+}
 
-/*.btm-nav > *:where(.active) {*/
-/*  border-top-width: 2px;*/
-/*  --tw-bg-opacity: 1;*/
-/*  background-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-bg-opacity)));*/
-/*}*/
+.content-nav > *:not(.active) {
+  padding-top: 0.125rem;
+}
 
-/*.btm-nav > *:where(.\!active) {*/
-/*  border-top-width: 2px !important;*/
-/*  --tw-bg-opacity: 1 !important;*/
-/*  background-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-bg-opacity))) !important;*/
-/*}*/
+.content-nav > *:where(.active) {
+  border-top-width: 2px;
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-bg-opacity)));
+}
 
-/*.btm-nav > *.disabled,*/
-/*.btm-nav > *[disabled] {*/
-/*  pointer-events: none;*/
-/*  --tw-border-opacity: 0;*/
-/*  background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity)));*/
-/*  --tw-bg-opacity: 0.1;*/
-/*  color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity)));*/
-/*  --tw-text-opacity: 0.2;*/
-/*}*/
+.content-nav > *:where(.\!active) {
+  border-top-width: 2px !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-bg-opacity))) !important;
+}
 
-/*.btm-nav > *.\!disabled {*/
-/*  pointer-events: none !important;*/
-/*  --tw-border-opacity: 0 !important;*/
-/*  background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity))) !important;*/
-/*  --tw-bg-opacity: 0.1 !important;*/
-/*  color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity))) !important;*/
-/*  --tw-text-opacity: 0.2 !important;*/
-/*}*/
+.content-nav > *.disabled,
+.content-nav > *[disabled] {
+  pointer-events: none;
+  --tw-border-opacity: 0;
+  background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity)));
+  --tw-bg-opacity: 0.1;
+  color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity)));
+  --tw-text-opacity: 0.2;
+}
 
-/*.btm-nav > * .label {*/
-/*  font-size: 1rem;*/
-/*  line-height: 1.5rem;*/
-/*}*/
+.content-nav > *.\!disabled {
+  pointer-events: none !important;
+  --tw-border-opacity: 0 !important;
+  background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity))) !important;
+  --tw-bg-opacity: 0.1 !important;
+  color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity))) !important;
+  --tw-text-opacity: 0.2 !important;
+}
 
-/*.btm-nav > * .\!label {*/
-/*  font-size: 1rem !important;*/
-/*  line-height: 1.5rem !important;*/
-/*}*/
+.content-nav > * .label {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
 
-/*.btn:active:hover,*/
-/*.btn:active:focus {*/
-/*  animation: button-pop 0s ease-out;*/
-/*  transform: scale(var(--btn-focus-scale, 0.97));*/
-/*}*/
+.content-nav > * .\!label {
+  font-size: 1rem !important;
+  line-height: 1.5rem !important;
+}
+
+.btn:active:hover,
+.btn:active:focus {
+  animation: button-pop 0s ease-out;
+  transform: scale(var(--btn-focus-scale, 0.97));
+}
+
+.content-drawer {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto max-content; /* Change to grid-template-rows for vertical layout */
+  width: 100%;
+}
+
+.content-drawer-content {
+  grid-row-start: 1; /* Adjust to the first row */
+  min-width: 0px; /* No change needed */
+}
+
+.content-drawer-side {
+  pointer-events: none;
+  position: fixed;
+  inset-inline-start: 0px;
+  bottom: 0px; /* Change from top to bottom */
+  display: grid;
+  width: 100%;
+  grid-template-rows: repeat(1, minmax(0, 1fr)); /* Use rows instead of columns */
+  align-items: end; /* Align items to the bottom */
+  justify-items: start;
+  overflow-y: hidden; /* Change to overflow-x for vertical layout */
+  overscroll-behavior: contain;
+}
+
+.content-drawer-side > .content-drawer-overlay {
+  position: sticky;
+  bottom: 0px; /* Change from top to bottom */
+  place-self: stretch;
+  cursor: pointer;
+  background-color: transparent;
+  transition: color, background-color, border-color, text-decoration-color, fill, stroke 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.content-drawer-side > * {
+  grid-row-start: 1; /* Adjust grid positioning for vertical layout */
+}
+
+.content-drawer-side > *:not(.content-drawer-overlay) {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  transform: translateY(100%); /* Change to translateY for vertical movement */
+}
+
+.content-drawer-toggle {
+  position: fixed;
+  height: 0;
+  width: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  opacity: 0;
+}
+
+.content-drawer-toggle:checked ~ .content-drawer-side {
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.content-drawer-toggle:checked ~ .content-drawer-side > *:not(.content-drawer-overlay) {
+  transform: translateY(0%); /* Change to translateY for vertical movement */
+}
+
+.content-drawer-end .content-drawer-toggle ~ .content-drawer-content {
+  grid-row-start: 2; /* Adjust for vertical layout */
+}
+
+.content-drawer-end .content-drawer-toggle ~ .content-drawer-side {
+  justify-items: end; /* No change needed */
+}
+
+.content-drawer-end .content-drawer-toggle:checked ~ .content-drawer-side > *:not(.content-drawer-overlay) {
+  transform: translateY(0%); /* Ensure the transform is reset on toggle */
+}

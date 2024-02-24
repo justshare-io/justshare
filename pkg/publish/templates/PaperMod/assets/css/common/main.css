@@ -64,3 +64,60 @@ div.highlight:hover .copy-code,
 pre:hover .copy-code {
     display: block;
 }
+
+.embeddable-buttondown-form {
+    text-align: center;
+}
+
+.input {
+    flex-shrink: 1;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    height: 3rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 1rem;
+    line-height: 2;
+    line-height: 1.5rem;
+    border-radius: var(--rounded-btn,.5rem);
+    border-width: 1px;
+    border-color: transparent;
+    --tw-bg-opacity: 1;
+    background: var(--primary);
+    background-color: lightgrey;
+    color: var(--theme);
+}
+
+.btn {
+    background-color: beige !important;
+    display: inline-flex;
+    height: 3rem;
+    min-height: 3rem;
+    flex-shrink: 0;
+    cursor: pointer;
+    user-select: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    text-align: center;
+    font-size: 0.875rem;
+    line-height: 1em;
+    font-weight: 600;
+    text-decoration-line: none;
+    transition-duration: 0.2s;
+    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    transition-property: color, background-color, border-color, opacity, box-shadow, transform;
+    --tw-text-opacity: 1;
+    color: black;
+    --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / .05);
+    --tw-bg-opacity: 1;
+    --tw-border-opacity: 1;
+    border-radius: var(--rounded-btn, .5rem);
+    border-color: oklch(var(--btn-color, var(--b2)) / var(--tw-border-opacity));
+    gap: 0.5rem;
+    border-width: var(--border-btn, 1px);
+    animation: button-pop var(--animation-btn, .25s) ease-out;
+}

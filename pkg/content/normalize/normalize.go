@@ -70,7 +70,7 @@ func (s *Normalize) Normalize(ctx context.Context, uid uuid.UUID, c *content.Con
 
 					// TODO breadchris for files that come from the frontend, the url is not set correctly
 					// see content.go:571 Search
-					if strings.HasPrefix(u.File.Url, "/media/") {
+					if strings.HasPrefix(u.File.Url, "/upload/") {
 						f, err := s.bucket.File(c.Id)
 						if err != nil {
 							return nil, nil, err

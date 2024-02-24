@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 
 /**
  * @generated from message user.VerifyUserRequest
@@ -327,6 +327,55 @@ export class User extends Message<User> {
 }
 
 /**
+ * @generated from message user.Usage
+ */
+export class Usage extends Message<Usage> {
+  /**
+   * @generated from field: string user_id = 1;
+   */
+  userId = "";
+
+  /**
+   * @generated from field: int64 database_storage_used = 2;
+   */
+  databaseStorageUsed = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 file_storage_used = 3;
+   */
+  fileStorageUsed = protoInt64.zero;
+
+  constructor(data?: PartialMessage<Usage>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "user.Usage";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "database_storage_used", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "file_storage_used", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Usage {
+    return new Usage().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Usage {
+    return new Usage().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Usage {
+    return new Usage().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Usage | PlainMessage<Usage> | undefined, b: Usage | PlainMessage<Usage> | undefined): boolean {
+    return proto3.util.equals(Usage, a, b);
+  }
+}
+
+/**
  * @generated from message user.Group
  */
 export class Group extends Message<Group> {
@@ -432,6 +481,11 @@ export class LoginResponse extends Message<LoginResponse> {
    */
   success = false;
 
+  /**
+   * @generated from field: int64 expires = 3;
+   */
+  expires = protoInt64.zero;
+
   constructor(data?: PartialMessage<LoginResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -442,6 +496,7 @@ export class LoginResponse extends Message<LoginResponse> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "user", kind: "message", T: User },
     { no: 2, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "expires", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LoginResponse {

@@ -4,22 +4,13 @@ import {AuthForm} from "@/auth/AuthForm";
 import {useEffect} from "react";
 
 export function Home() {
-    const { user , tryLogin} = useAuth();
+    const { user, loginResponse , tryLogin} = useAuth();
 
     useEffect(() => {
+        // TODO breadchris use loginResponse.expires to calculate when to refresh session
         void tryLogin();
     }, []);
 
-    // TODO breadchris implement loading
-    if (false) {
-        return (
-            <div className="flex flex-col gap-4 w-full">
-                <div className="flex-grow flex justify-center items-center">
-                    <span className={"loading loading-spinner"} />
-                </div>
-            </div>
-        )
-    }
     return (
         <div className="h-screen flex flex-col gap-4 w-full">
             {user ? <SourcePage /> : <AuthForm allowRegister={true} />}
