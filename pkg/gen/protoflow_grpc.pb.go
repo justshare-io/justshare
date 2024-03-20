@@ -29,7 +29,6 @@ type ProtoflowServiceClient interface {
 	DeleteSession(ctx context.Context, in *DeleteSessionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetPrompts(ctx context.Context, in *GetPromptsRequest, opts ...grpc.CallOption) (*GetPromptsResponse, error)
 	NewPrompt(ctx context.Context, in *Prompt, opts ...grpc.CallOption) (*Prompt, error)
-	UploadContent(ctx context.Context, in *UploadContentRequest, opts ...grpc.CallOption) (ProtoflowService_UploadContentClient, error)
 	Infer(ctx context.Context, in *InferRequest, opts ...grpc.CallOption) (ProtoflowService_InferClient, error)
 	Chat(ctx context.Context, in *ChatRequest, opts ...grpc.CallOption) (ProtoflowService_ChatClient, error)
 	ConvertFile(ctx context.Context, in *ConvertFileRequest, opts ...grpc.CallOption) (*FilePath, error)
@@ -99,40 +98,8 @@ func (c *protoflowServiceClient) NewPrompt(ctx context.Context, in *Prompt, opts
 	return out, nil
 }
 
-func (c *protoflowServiceClient) UploadContent(ctx context.Context, in *UploadContentRequest, opts ...grpc.CallOption) (ProtoflowService_UploadContentClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ProtoflowService_ServiceDesc.Streams[0], "/protoflow.ProtoflowService/UploadContent", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &protoflowServiceUploadContentClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type ProtoflowService_UploadContentClient interface {
-	Recv() (*ChatResponse, error)
-	grpc.ClientStream
-}
-
-type protoflowServiceUploadContentClient struct {
-	grpc.ClientStream
-}
-
-func (x *protoflowServiceUploadContentClient) Recv() (*ChatResponse, error) {
-	m := new(ChatResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 func (c *protoflowServiceClient) Infer(ctx context.Context, in *InferRequest, opts ...grpc.CallOption) (ProtoflowService_InferClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ProtoflowService_ServiceDesc.Streams[1], "/protoflow.ProtoflowService/Infer", opts...)
+	stream, err := c.cc.NewStream(ctx, &ProtoflowService_ServiceDesc.Streams[0], "/protoflow.ProtoflowService/Infer", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +131,7 @@ func (x *protoflowServiceInferClient) Recv() (*InferResponse, error) {
 }
 
 func (c *protoflowServiceClient) Chat(ctx context.Context, in *ChatRequest, opts ...grpc.CallOption) (ProtoflowService_ChatClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ProtoflowService_ServiceDesc.Streams[2], "/protoflow.ProtoflowService/Chat", opts...)
+	stream, err := c.cc.NewStream(ctx, &ProtoflowService_ServiceDesc.Streams[1], "/protoflow.ProtoflowService/Chat", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +199,6 @@ type ProtoflowServiceServer interface {
 	DeleteSession(context.Context, *DeleteSessionRequest) (*emptypb.Empty, error)
 	GetPrompts(context.Context, *GetPromptsRequest) (*GetPromptsResponse, error)
 	NewPrompt(context.Context, *Prompt) (*Prompt, error)
-	UploadContent(*UploadContentRequest, ProtoflowService_UploadContentServer) error
 	Infer(*InferRequest, ProtoflowService_InferServer) error
 	Chat(*ChatRequest, ProtoflowService_ChatServer) error
 	ConvertFile(context.Context, *ConvertFileRequest) (*FilePath, error)
@@ -261,9 +227,6 @@ func (UnimplementedProtoflowServiceServer) GetPrompts(context.Context, *GetPromp
 }
 func (UnimplementedProtoflowServiceServer) NewPrompt(context.Context, *Prompt) (*Prompt, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NewPrompt not implemented")
-}
-func (UnimplementedProtoflowServiceServer) UploadContent(*UploadContentRequest, ProtoflowService_UploadContentServer) error {
-	return status.Errorf(codes.Unimplemented, "method UploadContent not implemented")
 }
 func (UnimplementedProtoflowServiceServer) Infer(*InferRequest, ProtoflowService_InferServer) error {
 	return status.Errorf(codes.Unimplemented, "method Infer not implemented")
@@ -398,27 +361,6 @@ func _ProtoflowService_NewPrompt_Handler(srv interface{}, ctx context.Context, d
 		return srv.(ProtoflowServiceServer).NewPrompt(ctx, req.(*Prompt))
 	}
 	return interceptor(ctx, in, info, handler)
-}
-
-func _ProtoflowService_UploadContent_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(UploadContentRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(ProtoflowServiceServer).UploadContent(m, &protoflowServiceUploadContentServer{stream})
-}
-
-type ProtoflowService_UploadContentServer interface {
-	Send(*ChatResponse) error
-	grpc.ServerStream
-}
-
-type protoflowServiceUploadContentServer struct {
-	grpc.ServerStream
-}
-
-func (x *protoflowServiceUploadContentServer) Send(m *ChatResponse) error {
-	return x.ServerStream.SendMsg(m)
 }
 
 func _ProtoflowService_Infer_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -562,11 +504,6 @@ var ProtoflowService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "UploadContent",
-			Handler:       _ProtoflowService_UploadContent_Handler,
-			ServerStreams: true,
-		},
 		{
 			StreamName:    "Infer",
 			Handler:       _ProtoflowService_Infer_Handler,

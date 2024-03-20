@@ -7,6 +7,7 @@ import (
 	"github.com/justshare-io/justshare/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -78,6 +79,16 @@ func NewDeployment(
 							Ports: []corev1.ContainerPort{
 								{
 									ContainerPort: port,
+								},
+							},
+							Resources: corev1.ResourceRequirements{
+								Requests: corev1.ResourceList{
+									corev1.ResourceCPU:    resource.MustParse("500m"), // Request 0.5 CPU cores
+									corev1.ResourceMemory: resource.MustParse("1Gi"),  // Request 1 GiB of memory
+								},
+								Limits: corev1.ResourceList{
+									corev1.ResourceCPU:    resource.MustParse("1"),   // Limit to 1 CPU core
+									corev1.ResourceMemory: resource.MustParse("2Gi"), // Limit to 2 GiB of memory
 								},
 							},
 							// TODO breadchris make sure required environment variables are present

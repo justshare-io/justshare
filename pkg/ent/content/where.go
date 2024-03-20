@@ -217,6 +217,29 @@ func HasTagsWith(preds ...predicate.Tag) predicate.Content {
 	})
 }
 
+// HasParents applies the HasEdge predicate on the "parents" edge.
+func HasParents() predicate.Content {
+	return predicate.Content(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, ParentsTable, ParentsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasParentsWith applies the HasEdge predicate on the "parents" edge with a given conditions (other predicates).
+func HasParentsWith(preds ...predicate.Content) predicate.Content {
+	return predicate.Content(func(s *sql.Selector) {
+		step := newParentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasChildren applies the HasEdge predicate on the "children" edge.
 func HasChildren() predicate.Content {
 	return predicate.Content(func(s *sql.Selector) {
@@ -240,21 +263,44 @@ func HasChildrenWith(preds ...predicate.Content) predicate.Content {
 	})
 }
 
-// HasParents applies the HasEdge predicate on the "parents" edge.
-func HasParents() predicate.Content {
+// HasCurrent applies the HasEdge predicate on the "current" edge.
+func HasCurrent() predicate.Content {
 	return predicate.Content(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ParentsTable, ParentsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, CurrentTable, CurrentColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasParentsWith applies the HasEdge predicate on the "parents" edge with a given conditions (other predicates).
-func HasParentsWith(preds ...predicate.Content) predicate.Content {
+// HasCurrentWith applies the HasEdge predicate on the "current" edge with a given conditions (other predicates).
+func HasCurrentWith(preds ...predicate.Content) predicate.Content {
 	return predicate.Content(func(s *sql.Selector) {
-		step := newParentsStep()
+		step := newCurrentStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasVersions applies the HasEdge predicate on the "versions" edge.
+func HasVersions() predicate.Content {
+	return predicate.Content(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VersionsTable, VersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasVersionsWith applies the HasEdge predicate on the "versions" edge with a given conditions (other predicates).
+func HasVersionsWith(preds ...predicate.Content) predicate.Content {
+	return predicate.Content(func(s *sql.Selector) {
+		step := newVersionsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

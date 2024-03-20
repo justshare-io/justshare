@@ -399,6 +399,22 @@ func (c *ContentClient) QueryTags(co *Content) *TagQuery {
 	return query
 }
 
+// QueryParents queries the parents edge of a Content.
+func (c *ContentClient) QueryParents(co *Content) *ContentQuery {
+	query := (&ContentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(content.Table, content.FieldID, id),
+			sqlgraph.To(content.Table, content.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, content.ParentsTable, content.ParentsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryChildren queries the children edge of a Content.
 func (c *ContentClient) QueryChildren(co *Content) *ContentQuery {
 	query := (&ContentClient{config: c.config}).Query()
@@ -415,15 +431,31 @@ func (c *ContentClient) QueryChildren(co *Content) *ContentQuery {
 	return query
 }
 
-// QueryParents queries the parents edge of a Content.
-func (c *ContentClient) QueryParents(co *Content) *ContentQuery {
+// QueryCurrent queries the current edge of a Content.
+func (c *ContentClient) QueryCurrent(co *Content) *ContentQuery {
 	query := (&ContentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := co.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(content.Table, content.FieldID, id),
 			sqlgraph.To(content.Table, content.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, content.ParentsTable, content.ParentsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, content.CurrentTable, content.CurrentColumn),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVersions queries the versions edge of a Content.
+func (c *ContentClient) QueryVersions(co *Content) *ContentQuery {
+	query := (&ContentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(content.Table, content.FieldID, id),
+			sqlgraph.To(content.Table, content.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, content.VersionsTable, content.VersionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
 		return fromV, nil

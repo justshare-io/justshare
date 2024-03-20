@@ -1,11 +1,31 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { Tag } from "@/rpc/content/content_pb";
-import { useProjectContext } from "@/react/ProjectProvider";
 import { FilteredTagInput } from "@/tag/FilteredTagInput";
+import {contentService} from "@/service";
 
 export const TagManager = () => {
-    const { addFilteredTag, tags, filteredTags, removeFilteredTag } = useProjectContext();
+    const [tags, setTags] = useState<Tag[]>([]);
+    const [filteredTags, setFilteredTags] = useState<string[]>([]);
     const [selectedTag, setSelectedTag] = useState<string>('');
+
+    useEffect(() => {
+        void loadTags();
+    }, []);
+
+    const loadTags = async () => {
+        const res = await contentService.getTags({
+            groupId: undefined,
+        });
+        setTags(res.tags);
+    }
+
+    const addFilteredTag = (tag: string) => {
+        setFilteredTags((prev) => [...prev, tag]);
+    }
+
+    const removeFilteredTag = (tag: string) => {
+        setFilteredTags((prev) => prev.filter((t) => t !== tag));
+    }
 
     const onAddTag = (tag: string) => {
         if (tag) {

@@ -113,6 +113,21 @@ func (cc *ContentCreate) AddTags(t ...*Tag) *ContentCreate {
 	return cc.AddTagIDs(ids...)
 }
 
+// AddParentIDs adds the "parents" edge to the Content entity by IDs.
+func (cc *ContentCreate) AddParentIDs(ids ...uuid.UUID) *ContentCreate {
+	cc.mutation.AddParentIDs(ids...)
+	return cc
+}
+
+// AddParents adds the "parents" edges to the Content entity.
+func (cc *ContentCreate) AddParents(c ...*Content) *ContentCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddParentIDs(ids...)
+}
+
 // AddChildIDs adds the "children" edge to the Content entity by IDs.
 func (cc *ContentCreate) AddChildIDs(ids ...uuid.UUID) *ContentCreate {
 	cc.mutation.AddChildIDs(ids...)
@@ -128,19 +143,38 @@ func (cc *ContentCreate) AddChildren(c ...*Content) *ContentCreate {
 	return cc.AddChildIDs(ids...)
 }
 
-// AddParentIDs adds the "parents" edge to the Content entity by IDs.
-func (cc *ContentCreate) AddParentIDs(ids ...uuid.UUID) *ContentCreate {
-	cc.mutation.AddParentIDs(ids...)
+// SetCurrentID sets the "current" edge to the Content entity by ID.
+func (cc *ContentCreate) SetCurrentID(id uuid.UUID) *ContentCreate {
+	cc.mutation.SetCurrentID(id)
 	return cc
 }
 
-// AddParents adds the "parents" edges to the Content entity.
-func (cc *ContentCreate) AddParents(c ...*Content) *ContentCreate {
+// SetNillableCurrentID sets the "current" edge to the Content entity by ID if the given value is not nil.
+func (cc *ContentCreate) SetNillableCurrentID(id *uuid.UUID) *ContentCreate {
+	if id != nil {
+		cc = cc.SetCurrentID(*id)
+	}
+	return cc
+}
+
+// SetCurrent sets the "current" edge to the Content entity.
+func (cc *ContentCreate) SetCurrent(c *Content) *ContentCreate {
+	return cc.SetCurrentID(c.ID)
+}
+
+// AddVersionIDs adds the "versions" edge to the Content entity by IDs.
+func (cc *ContentCreate) AddVersionIDs(ids ...uuid.UUID) *ContentCreate {
+	cc.mutation.AddVersionIDs(ids...)
+	return cc
+}
+
+// AddVersions adds the "versions" edges to the Content entity.
+func (cc *ContentCreate) AddVersions(c ...*Content) *ContentCreate {
 	ids := make([]uuid.UUID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return cc.AddParentIDs(ids...)
+	return cc.AddVersionIDs(ids...)
 }
 
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
@@ -302,13 +336,13 @@ func (cc *ContentCreate) createSpec() (*Content, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := cc.mutation.ChildrenIDs(); len(nodes) > 0 {
+	if nodes := cc.mutation.ParentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   content.ChildrenTable,
-			Columns: content.ChildrenPrimaryKey,
-			Bidi:    true,
+			Inverse: true,
+			Table:   content.ParentsTable,
+			Columns: content.ParentsPrimaryKey,
+			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(content.FieldID, field.TypeUUID),
 			},
@@ -318,12 +352,45 @@ func (cc *ContentCreate) createSpec() (*Content, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := cc.mutation.ParentsIDs(); len(nodes) > 0 {
+	if nodes := cc.mutation.ChildrenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   content.ChildrenTable,
+			Columns: content.ChildrenPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(content.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.CurrentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   content.ParentsTable,
-			Columns: content.ParentsPrimaryKey,
+			Table:   content.CurrentTable,
+			Columns: []string{content.CurrentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(content.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.content_versions = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.VersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   content.VersionsTable,
+			Columns: []string{content.VersionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(content.FieldID, field.TypeUUID),

@@ -11,6 +11,92 @@ import { History } from "./browser/history_pb.js";
 import { HugoConfig, MenuItem } from "./blog_pb.js";
 
 /**
+ * @generated from message content.YouTubeVideoResponse
+ */
+export class YouTubeVideoResponse extends Message<YouTubeVideoResponse> {
+  /**
+   * @generated from field: string title = 1;
+   */
+  title = "";
+
+  /**
+   * @generated from field: content.FilePath file_path = 2;
+   */
+  filePath?: FilePath;
+
+  /**
+   * @generated from field: repeated content.Segment transcript = 3;
+   */
+  transcript: Segment[] = [];
+
+  constructor(data?: PartialMessage<YouTubeVideoResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "content.YouTubeVideoResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "file_path", kind: "message", T: FilePath },
+    { no: 3, name: "transcript", kind: "message", T: Segment, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): YouTubeVideoResponse {
+    return new YouTubeVideoResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): YouTubeVideoResponse {
+    return new YouTubeVideoResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): YouTubeVideoResponse {
+    return new YouTubeVideoResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: YouTubeVideoResponse | PlainMessage<YouTubeVideoResponse> | undefined, b: YouTubeVideoResponse | PlainMessage<YouTubeVideoResponse> | undefined): boolean {
+    return proto3.util.equals(YouTubeVideoResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message content.FilePath
+ */
+export class FilePath extends Message<FilePath> {
+  /**
+   * @generated from field: string file = 1;
+   */
+  file = "";
+
+  constructor(data?: PartialMessage<FilePath>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "content.FilePath";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "file", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FilePath {
+    return new FilePath().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FilePath {
+    return new FilePath().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FilePath {
+    return new FilePath().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FilePath | PlainMessage<FilePath> | undefined, b: FilePath | PlainMessage<FilePath> | undefined): boolean {
+    return proto3.util.equals(FilePath, a, b);
+  }
+}
+
+/**
  * @generated from message content.InferRequest
  */
 export class InferRequest extends Message<InferRequest> {

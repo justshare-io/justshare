@@ -3,9 +3,9 @@ package normalize
 import (
 	"context"
 	connect_go "github.com/bufbuild/connect-go"
-	"github.com/kkdai/youtube/v2"
 	genapi "github.com/justshare-io/justshare/pkg/gen"
 	"github.com/justshare-io/justshare/pkg/gen/content"
+	"github.com/kkdai/youtube/v2"
 	"github.com/pkg/errors"
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 	"io"
@@ -19,7 +19,7 @@ func cutVideoSection(inputFile, outputFile string, startTime, duration int) erro
 		Run()
 }
 
-func (s *Normalize) DownloadYouTubeVideo(ctx context.Context, c *connect_go.Request[genapi.YouTubeVideo]) (*connect_go.Response[genapi.YouTubeVideoResponse], error) {
+func (s *Normalize) DownloadYouTubeVideo(ctx context.Context, c *connect_go.Request[genapi.YouTubeVideo]) (*connect_go.Response[content.YouTubeVideoResponse], error) {
 	client := youtube.Client{
 		Debug: true,
 	}
@@ -46,7 +46,7 @@ func (s *Normalize) DownloadYouTubeVideo(ctx context.Context, c *connect_go.Requ
 	}
 
 	if len(segments) > 0 {
-		return connect_go.NewResponse(&genapi.YouTubeVideoResponse{
+		return connect_go.NewResponse(&content.YouTubeVideoResponse{
 			Title:      video.Title,
 			Transcript: segments,
 		}), nil
@@ -86,9 +86,9 @@ func (s *Normalize) DownloadYouTubeVideo(ctx context.Context, c *connect_go.Requ
 		panic(err)
 	}
 	slog.Info("downloaded video", "id", c.Msg.Id, "size", contentLength)
-	return connect_go.NewResponse(&genapi.YouTubeVideoResponse{
+	return connect_go.NewResponse(&content.YouTubeVideoResponse{
 		Title: video.Title,
-		FilePath: &genapi.FilePath{
+		FilePath: &content.FilePath{
 			File: filepath,
 		},
 		Transcript: segments,

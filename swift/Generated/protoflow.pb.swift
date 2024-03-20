@@ -130,39 +130,6 @@ public struct Protoflow_InferResponse {
   public init() {}
 }
 
-public struct Protoflow_UploadContentRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var content: Content_Content {
-    get {return _content ?? Content_Content()}
-    set {_content = newValue}
-  }
-  /// Returns true if `content` has been explicitly set.
-  public var hasContent: Bool {return self._content != nil}
-  /// Clears the value of `content`. Subsequent reads from it will return its default value.
-  public mutating func clearContent() {self._content = nil}
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-
-  fileprivate var _content: Content_Content? = nil
-}
-
-public struct Protoflow_UploadContentResponse {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var id: String = String()
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-}
-
 public struct Protoflow_GetSessionRequest {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -452,8 +419,6 @@ public struct Protoflow_YouTubeVideoResponse {
   /// Clears the value of `filePath`. Subsequent reads from it will return its default value.
   public mutating func clearFilePath() {self._filePath = nil}
 
-  public var transcript: [Content_Segment] = []
-
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -471,8 +436,6 @@ extension Protoflow_GetPromptsRequest: @unchecked Sendable {}
 extension Protoflow_GetPromptsResponse: @unchecked Sendable {}
 extension Protoflow_InferRequest: @unchecked Sendable {}
 extension Protoflow_InferResponse: @unchecked Sendable {}
-extension Protoflow_UploadContentRequest: @unchecked Sendable {}
-extension Protoflow_UploadContentResponse: @unchecked Sendable {}
 extension Protoflow_GetSessionRequest: @unchecked Sendable {}
 extension Protoflow_GetSessionResponse: @unchecked Sendable {}
 extension Protoflow_GetSessionsRequest: @unchecked Sendable {}
@@ -778,74 +741,6 @@ extension Protoflow_InferResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
 
   public static func ==(lhs: Protoflow_InferResponse, rhs: Protoflow_InferResponse) -> Bool {
     if lhs.text != rhs.text {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Protoflow_UploadContentRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".UploadContentRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "content"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularMessageField(value: &self._content) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._content {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Protoflow_UploadContentRequest, rhs: Protoflow_UploadContentRequest) -> Bool {
-    if lhs._content != rhs._content {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Protoflow_UploadContentResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".UploadContentResponse"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "id"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Protoflow_UploadContentResponse, rhs: Protoflow_UploadContentResponse) -> Bool {
-    if lhs.id != rhs.id {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1519,7 +1414,6 @@ extension Protoflow_YouTubeVideoResponse: SwiftProtobuf.Message, SwiftProtobuf._
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "title"),
     2: .standard(proto: "file_path"),
-    3: .same(proto: "transcript"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1530,7 +1424,6 @@ extension Protoflow_YouTubeVideoResponse: SwiftProtobuf.Message, SwiftProtobuf._
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.title) }()
       case 2: try { try decoder.decodeSingularMessageField(value: &self._filePath) }()
-      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.transcript) }()
       default: break
       }
     }
@@ -1547,16 +1440,12 @@ extension Protoflow_YouTubeVideoResponse: SwiftProtobuf.Message, SwiftProtobuf._
     try { if let v = self._filePath {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     } }()
-    if !self.transcript.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.transcript, fieldNumber: 3)
-    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Protoflow_YouTubeVideoResponse, rhs: Protoflow_YouTubeVideoResponse) -> Bool {
     if lhs.title != rhs.title {return false}
     if lhs._filePath != rhs._filePath {return false}
-    if lhs.transcript != rhs.transcript {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

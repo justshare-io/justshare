@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AnalyzeConversationRequest, ChatRequest, ChatResponse, ConvertFileRequest, DeleteSessionRequest, FilePath, GenerateImagesRequest, GenerateImagesResponse, GetPromptsRequest, GetPromptsResponse, GetSessionRequest, GetSessionResponse, GetSessionsRequest, GetSessionsResponse, InferRequest, InferResponse, Prompt, UploadContentRequest, YouTubeVideo, YouTubeVideoResponse } from "./protoflow_pb.js";
+import { AnalyzeConversationRequest, ChatRequest, ChatResponse, ConvertFileRequest, DeleteSessionRequest, FilePath, GenerateImagesRequest, GenerateImagesResponse, GetPromptsRequest, GetPromptsResponse, GetSessionRequest, GetSessionResponse, GetSessionsRequest, GetSessionsResponse, InferRequest, InferResponse, Prompt, YouTubeVideo, YouTubeVideoResponse } from "./protoflow_pb.js";
 import { Empty, MethodKind } from "@bufbuild/protobuf";
 import { AnalyzeConversationResponse } from "./ai_pb.js";
 
@@ -66,15 +66,6 @@ export const ProtoflowService = {
       I: Prompt,
       O: Prompt,
       kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc protoflow.ProtoflowService.UploadContent
-     */
-    uploadContent: {
-      name: "UploadContent",
-      I: UploadContentRequest,
-      O: ChatResponse,
-      kind: MethodKind.ServerStreaming,
     },
     /**
      * @generated from rpc protoflow.ProtoflowService.Infer

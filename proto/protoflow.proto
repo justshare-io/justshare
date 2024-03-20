@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package protoflow;
 
-import "content/content.proto";
 import "ai.proto";
 import "google/protobuf/empty.proto";
 
@@ -15,8 +14,6 @@ service ProtoflowService {
   rpc GetPrompts(GetPromptsRequest) returns (GetPromptsResponse);
   rpc NewPrompt(Prompt) returns (Prompt);
 
-  rpc UploadContent(UploadContentRequest) returns (stream ChatResponse);
-
   rpc Infer(InferRequest) returns (stream InferResponse);
 
   rpc Chat(ChatRequest) returns (stream ChatResponse);
@@ -25,6 +22,7 @@ service ProtoflowService {
 
   rpc AnalyzeConversation(AnalyzeConversationRequest) returns (ai.AnalyzeConversationResponse);
 }
+
 message AnalyzeConversationRequest {
   string text = 1;
 }
@@ -59,14 +57,6 @@ message InferRequest {
 
 message InferResponse {
   string text = 1;
-}
-
-message UploadContentRequest {
-  content.Content content = 1;
-}
-
-message UploadContentResponse {
-  string id = 1;
 }
 
 message GetSessionRequest {
@@ -161,5 +151,4 @@ message FilePath {
 message YouTubeVideoResponse {
   string title = 1;
   FilePath file_path = 2;
-  repeated content.Segment transcript = 3;
 }

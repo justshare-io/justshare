@@ -10,6 +10,7 @@ import "google/protobuf/descriptor.proto";
 import "content/blog.proto";
 import "content/chatgpt/conversation.proto";
 import "content/browser/history.proto";
+import "ai.proto";
 
 option go_package = "./gen";
 
@@ -26,6 +27,16 @@ service ContentService {
   rpc Infer(InferRequest) returns (stream InferResponse);
   rpc Types(google.protobuf.Empty) returns (TypesResponse);
   rpc VoiceInput(VoiceInputRequest) returns (stream VoiceInputResponse);
+}
+
+message YouTubeVideoResponse {
+  string title = 1;
+  FilePath file_path = 2;
+  repeated content.Segment transcript = 3;
+}
+
+message FilePath {
+  string file = 1;
 }
 
 message InferRequest {

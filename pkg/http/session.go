@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/justshare-io/justshare/pkg/ent"
 	"github.com/pkg/errors"
+	"time"
 )
 
 const (
@@ -24,7 +25,7 @@ func NewSession(client *ent.Client) (*SessionManager, error) {
 	s := scs.New()
 
 	// TODO breadchris make this configurable
-	s.Lifetime = 60 * 60 * 24 * 7
+	s.Lifetime = time.Hour * 24 * 7 * 4
 
 	var err error
 	if s.Store, err = NewEntStore(client); err != nil {

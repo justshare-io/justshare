@@ -5,7 +5,6 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { Content, Segment as Segment$1 } from "./content/content_pb.js";
 
 /**
  * @generated from message protoflow.AnalyzeConversationRequest
@@ -343,80 +342,6 @@ export class InferResponse extends Message<InferResponse> {
 
   static equals(a: InferResponse | PlainMessage<InferResponse> | undefined, b: InferResponse | PlainMessage<InferResponse> | undefined): boolean {
     return proto3.util.equals(InferResponse, a, b);
-  }
-}
-
-/**
- * @generated from message protoflow.UploadContentRequest
- */
-export class UploadContentRequest extends Message<UploadContentRequest> {
-  /**
-   * @generated from field: content.Content content = 1;
-   */
-  content?: Content;
-
-  constructor(data?: PartialMessage<UploadContentRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "protoflow.UploadContentRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "content", kind: "message", T: Content },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UploadContentRequest {
-    return new UploadContentRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UploadContentRequest {
-    return new UploadContentRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UploadContentRequest {
-    return new UploadContentRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: UploadContentRequest | PlainMessage<UploadContentRequest> | undefined, b: UploadContentRequest | PlainMessage<UploadContentRequest> | undefined): boolean {
-    return proto3.util.equals(UploadContentRequest, a, b);
-  }
-}
-
-/**
- * @generated from message protoflow.UploadContentResponse
- */
-export class UploadContentResponse extends Message<UploadContentResponse> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  constructor(data?: PartialMessage<UploadContentResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "protoflow.UploadContentResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UploadContentResponse {
-    return new UploadContentResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UploadContentResponse {
-    return new UploadContentResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UploadContentResponse {
-    return new UploadContentResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: UploadContentResponse | PlainMessage<UploadContentResponse> | undefined, b: UploadContentResponse | PlainMessage<UploadContentResponse> | undefined): boolean {
-    return proto3.util.equals(UploadContentResponse, a, b);
   }
 }
 
@@ -1202,11 +1127,6 @@ export class YouTubeVideoResponse extends Message<YouTubeVideoResponse> {
    */
   filePath?: FilePath;
 
-  /**
-   * @generated from field: repeated content.Segment transcript = 3;
-   */
-  transcript: Segment$1[] = [];
-
   constructor(data?: PartialMessage<YouTubeVideoResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1217,7 +1137,6 @@ export class YouTubeVideoResponse extends Message<YouTubeVideoResponse> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "file_path", kind: "message", T: FilePath },
-    { no: 3, name: "transcript", kind: "message", T: Segment$1, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): YouTubeVideoResponse {

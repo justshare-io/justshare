@@ -38,9 +38,11 @@ func (Content) Edges() []ent.Edge {
 			Unique(),
 		edge.From("tags", Tag.Type).
 			Ref("contents"),
-		edge.To("children", Content.Type),
-		edge.From("parents", Content.Type).
-			Ref("children"),
+		edge.To("children", Content.Type).
+			From("parents"),
+		edge.To("versions", Content.Type).
+			From("current").
+			Unique(),
 		edge.To("groups", Group.Type),
 	}
 }

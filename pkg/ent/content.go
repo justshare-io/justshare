@@ -31,9 +31,10 @@ type Content struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ContentQuery when eager-loading is set.
-	Edges        ContentEdges `json:"edges"`
-	user_content *uuid.UUID
-	selectValues sql.SelectValues
+	Edges            ContentEdges `json:"edges"`
+	content_versions *uuid.UUID
+	user_content     *uuid.UUID
+	selectValues     sql.SelectValues
 }
 
 // ContentEdges holds the relations/edges for other nodes in the graph.
@@ -42,15 +43,19 @@ type ContentEdges struct {
 	User *User `json:"user,omitempty"`
 	// Tags holds the value of the tags edge.
 	Tags []*Tag `json:"tags,omitempty"`
-	// Children holds the value of the children edge.
-	Children []*Content `json:"children,omitempty"`
 	// Parents holds the value of the parents edge.
 	Parents []*Content `json:"parents,omitempty"`
+	// Children holds the value of the children edge.
+	Children []*Content `json:"children,omitempty"`
+	// Current holds the value of the current edge.
+	Current *Content `json:"current,omitempty"`
+	// Versions holds the value of the versions edge.
+	Versions []*Content `json:"versions,omitempty"`
 	// Groups holds the value of the groups edge.
 	Groups []*Group `json:"groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [7]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -75,28 +80,50 @@ func (e ContentEdges) TagsOrErr() ([]*Tag, error) {
 	return nil, &NotLoadedError{edge: "tags"}
 }
 
-// ChildrenOrErr returns the Children value or an error if the edge
-// was not loaded in eager-loading.
-func (e ContentEdges) ChildrenOrErr() ([]*Content, error) {
-	if e.loadedTypes[2] {
-		return e.Children, nil
-	}
-	return nil, &NotLoadedError{edge: "children"}
-}
-
 // ParentsOrErr returns the Parents value or an error if the edge
 // was not loaded in eager-loading.
 func (e ContentEdges) ParentsOrErr() ([]*Content, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[2] {
 		return e.Parents, nil
 	}
 	return nil, &NotLoadedError{edge: "parents"}
 }
 
+// ChildrenOrErr returns the Children value or an error if the edge
+// was not loaded in eager-loading.
+func (e ContentEdges) ChildrenOrErr() ([]*Content, error) {
+	if e.loadedTypes[3] {
+		return e.Children, nil
+	}
+	return nil, &NotLoadedError{edge: "children"}
+}
+
+// CurrentOrErr returns the Current value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ContentEdges) CurrentOrErr() (*Content, error) {
+	if e.loadedTypes[4] {
+		if e.Current == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: content.Label}
+		}
+		return e.Current, nil
+	}
+	return nil, &NotLoadedError{edge: "current"}
+}
+
+// VersionsOrErr returns the Versions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ContentEdges) VersionsOrErr() ([]*Content, error) {
+	if e.loadedTypes[5] {
+		return e.Versions, nil
+	}
+	return nil, &NotLoadedError{edge: "versions"}
+}
+
 // GroupsOrErr returns the Groups value or an error if the edge
 // was not loaded in eager-loading.
 func (e ContentEdges) GroupsOrErr() ([]*Group, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[6] {
 		return e.Groups, nil
 	}
 	return nil, &NotLoadedError{edge: "groups"}
@@ -115,7 +142,9 @@ func (*Content) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case content.FieldID:
 			values[i] = new(uuid.UUID)
-		case content.ForeignKeys[0]: // user_content
+		case content.ForeignKeys[0]: // content_versions
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case content.ForeignKeys[1]: // user_content
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
@@ -166,6 +195,13 @@ func (c *Content) assignValues(columns []string, values []any) error {
 			}
 		case content.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field content_versions", values[i])
+			} else if value.Valid {
+				c.content_versions = new(uuid.UUID)
+				*c.content_versions = *value.S.(*uuid.UUID)
+			}
+		case content.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field user_content", values[i])
 			} else if value.Valid {
 				c.user_content = new(uuid.UUID)
@@ -194,14 +230,24 @@ func (c *Content) QueryTags() *TagQuery {
 	return NewContentClient(c.config).QueryTags(c)
 }
 
+// QueryParents queries the "parents" edge of the Content entity.
+func (c *Content) QueryParents() *ContentQuery {
+	return NewContentClient(c.config).QueryParents(c)
+}
+
 // QueryChildren queries the "children" edge of the Content entity.
 func (c *Content) QueryChildren() *ContentQuery {
 	return NewContentClient(c.config).QueryChildren(c)
 }
 
-// QueryParents queries the "parents" edge of the Content entity.
-func (c *Content) QueryParents() *ContentQuery {
-	return NewContentClient(c.config).QueryParents(c)
+// QueryCurrent queries the "current" edge of the Content entity.
+func (c *Content) QueryCurrent() *ContentQuery {
+	return NewContentClient(c.config).QueryCurrent(c)
+}
+
+// QueryVersions queries the "versions" edge of the Content entity.
+func (c *Content) QueryVersions() *ContentQuery {
+	return NewContentClient(c.config).QueryVersions(c)
 }
 
 // QueryGroups queries the "groups" edge of the Content entity.

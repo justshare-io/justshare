@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"github.com/google/uuid"
 	"github.com/justshare-io/justshare/pkg/ent"
 	"github.com/justshare-io/justshare/pkg/ent/schema"
@@ -85,6 +87,23 @@ func (s *EntStore) AttemptLogin(ctx context.Context, email, password string) (*e
 	return u, nil
 }
 
+func (s *EntStore) UsernameExists(ctx context.Context, username string) (bool, error) {
+	_, err := s.client.User.
+		Query().
+		Where(func(s *sql.Selector) {
+			s.Where(sqljson.ValueEQ(entuser.FieldData, username, sqljson.Path("username")))
+		}).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+// TODO breadchris separate account from identity https://news.ycombinator.com/item?id=14679571
 func (s *EntStore) NewUser(ctx context.Context, ps *user.User, oauth goth.User) (*ent.User, error) {
 	u := s.client.User.
 		Create().

@@ -13,6 +13,7 @@ import {FileDrop} from "@/file/FileDrop";
 import {AddTagBadge} from "@/tag/AddTagBadge";
 import {postContent, siteContent, urlContent} from "../../extension/util";
 import {GroupDialog} from "@/auth/GroupManager";
+import {TagManager} from "@/tag/TagManager";
 
 export const SourcePage: React.FC = () => {
     const {
@@ -85,7 +86,10 @@ export const SourcePage: React.FC = () => {
             </div>
             <div className="flex-grow">
                 <GroupDialog open={groupsOpen} onClose={() => setGroupsOpen(false)} />
-                <ContentEditor />
+                <div className={"flex flex-row"}>
+                    <TagManager />
+                    <ContentEditor />
+                </div>
                 {/*{sources.length > 1 && (*/}
                 {/*    <Tabs sources={sources} selected={selected} onSelectSource={handleSelectSource} />*/}
                 {/*)}*/}

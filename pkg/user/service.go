@@ -115,6 +115,15 @@ func (s *Service) Register(ctx context.Context, c *connectgo.Request[user.User])
 	if err == nil {
 		return nil, errors.New("user already exists")
 	}
+	exists, err := s.user.UsernameExists(ctx, c.Msg.Username)
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not check if username exists")
+	}
+
+	if exists {
+		return nil, errors.New("username already exists")
+	}
+
 	u, err := s.user.NewUser(ctx, c.Msg, goth.User{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not create user")
@@ -180,6 +189,7 @@ func (s *Service) Login(ctx context.Context, c *connectgo.Request[user.User]) (*
 		if err != nil {
 			return nil, err
 		}
+		s.sess.SetUserID(ctx, u.ID.String())
 		return connectgo.NewResponse(&user.LoginResponse{
 			Success: true,
 			User:    getUser(u),

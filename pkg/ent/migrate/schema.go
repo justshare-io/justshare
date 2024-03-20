@@ -15,6 +15,7 @@ var (
 		{Name: "data", Type: field.TypeJSON},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "content_versions", Type: field.TypeUUID, Nullable: true},
 		{Name: "user_content", Type: field.TypeUUID, Nullable: true},
 	}
 	// ContentsTable holds the schema information for the "contents" table.
@@ -24,8 +25,14 @@ var (
 		PrimaryKey: []*schema.Column{ContentsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "contents_users_content",
+				Symbol:     "contents_contents_versions",
 				Columns:    []*schema.Column{ContentsColumns[5]},
+				RefColumns: []*schema.Column{ContentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "contents_users_content",
+				Columns:    []*schema.Column{ContentsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -242,7 +249,8 @@ var (
 )
 
 func init() {
-	ContentsTable.ForeignKeys[0].RefTable = UsersTable
+	ContentsTable.ForeignKeys[0].RefTable = ContentsTable
+	ContentsTable.ForeignKeys[1].RefTable = UsersTable
 	GroupInvitesTable.ForeignKeys[0].RefTable = GroupsTable
 	GroupUsersTable.ForeignKeys[0].RefTable = GroupsTable
 	GroupUsersTable.ForeignKeys[1].RefTable = UsersTable

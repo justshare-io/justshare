@@ -27,10 +27,14 @@ const (
 	EdgeUser = "user"
 	// EdgeTags holds the string denoting the tags edge name in mutations.
 	EdgeTags = "tags"
-	// EdgeChildren holds the string denoting the children edge name in mutations.
-	EdgeChildren = "children"
 	// EdgeParents holds the string denoting the parents edge name in mutations.
 	EdgeParents = "parents"
+	// EdgeChildren holds the string denoting the children edge name in mutations.
+	EdgeChildren = "children"
+	// EdgeCurrent holds the string denoting the current edge name in mutations.
+	EdgeCurrent = "current"
+	// EdgeVersions holds the string denoting the versions edge name in mutations.
+	EdgeVersions = "versions"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
 	// Table holds the table name of the content in the database.
@@ -47,10 +51,18 @@ const (
 	// TagsInverseTable is the table name for the Tag entity.
 	// It exists in this package in order to avoid circular dependency with the "tag" package.
 	TagsInverseTable = "tags"
-	// ChildrenTable is the table that holds the children relation/edge. The primary key declared below.
-	ChildrenTable = "content_children"
 	// ParentsTable is the table that holds the parents relation/edge. The primary key declared below.
 	ParentsTable = "content_children"
+	// ChildrenTable is the table that holds the children relation/edge. The primary key declared below.
+	ChildrenTable = "content_children"
+	// CurrentTable is the table that holds the current relation/edge.
+	CurrentTable = "contents"
+	// CurrentColumn is the table column denoting the current relation/edge.
+	CurrentColumn = "content_versions"
+	// VersionsTable is the table that holds the versions relation/edge.
+	VersionsTable = "contents"
+	// VersionsColumn is the table column denoting the versions relation/edge.
+	VersionsColumn = "content_versions"
 	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
 	GroupsTable = "content_groups"
 	// GroupsInverseTable is the table name for the Group entity.
@@ -70,6 +82,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "contents"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"content_versions",
 	"user_content",
 }
 
@@ -77,12 +90,12 @@ var (
 	// TagsPrimaryKey and TagsColumn2 are the table columns denoting the
 	// primary key for the tags relation (M2M).
 	TagsPrimaryKey = []string{"tag_id", "content_id"}
-	// ChildrenPrimaryKey and ChildrenColumn2 are the table columns denoting the
-	// primary key for the children relation (M2M).
-	ChildrenPrimaryKey = []string{"content_id", "parent_id"}
 	// ParentsPrimaryKey and ParentsColumn2 are the table columns denoting the
 	// primary key for the parents relation (M2M).
 	ParentsPrimaryKey = []string{"content_id", "parent_id"}
+	// ChildrenPrimaryKey and ChildrenColumn2 are the table columns denoting the
+	// primary key for the children relation (M2M).
+	ChildrenPrimaryKey = []string{"content_id", "parent_id"}
 	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
 	// primary key for the groups relation (M2M).
 	GroupsPrimaryKey = []string{"content_id", "group_id"}
@@ -158,6 +171,20 @@ func ByTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByParentsCount orders the results by parents count.
+func ByParentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newParentsStep(), opts...)
+	}
+}
+
+// ByParents orders the results by parents terms.
+func ByParents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newParentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByChildrenCount orders the results by children count.
 func ByChildrenCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -172,17 +199,24 @@ func ByChildren(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByParentsCount orders the results by parents count.
-func ByParentsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByCurrentField orders the results by current field.
+func ByCurrentField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newParentsStep(), opts...)
+		sqlgraph.OrderByNeighborTerms(s, newCurrentStep(), sql.OrderByField(field, opts...))
 	}
 }
 
-// ByParents orders the results by parents terms.
-func ByParents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByVersionsCount orders the results by versions count.
+func ByVersionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newParentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborsCount(s, newVersionsStep(), opts...)
+	}
+}
+
+// ByVersions orders the results by versions terms.
+func ByVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -213,6 +247,13 @@ func newTagsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2M, true, TagsTable, TagsPrimaryKey...),
 	)
 }
+func newParentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, ParentsTable, ParentsPrimaryKey...),
+	)
+}
 func newChildrenStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -220,11 +261,18 @@ func newChildrenStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2M, false, ChildrenTable, ChildrenPrimaryKey...),
 	)
 }
-func newParentsStep() *sqlgraph.Step {
+func newCurrentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, ParentsTable, ParentsPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.M2O, true, CurrentTable, CurrentColumn),
+	)
+}
+func newVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VersionsTable, VersionsColumn),
 	)
 }
 func newGroupsStep() *sqlgraph.Step {

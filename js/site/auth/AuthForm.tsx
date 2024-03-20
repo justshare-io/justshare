@@ -4,6 +4,7 @@ import {useAuth} from "@/auth/state";
 export const AuthForm: React.FC<{ next?: string, allowRegister?: boolean }> = ({ next, allowRegister }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
     const { login, register } = useAuth();
 
     // TODO breadchris make tab component that wraps https://daisyui.com/components/tab/#radio-tab-bordered--tab-content
@@ -29,6 +30,15 @@ export const AuthForm: React.FC<{ next?: string, allowRegister?: boolean }> = ({
                             )}
                         </div>
                         <div className={"space-y-2 w-full mx-auto my-6"}>
+                            {selectedTab === 'register' && (
+                                <input
+                                    className="input input-bordered w-full"
+                                    type="text"
+                                    placeholder="username"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                />
+                            )}
                             <input
                                 className="input input-bordered w-full"
                                 type="email"

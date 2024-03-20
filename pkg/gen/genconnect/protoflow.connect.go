@@ -52,9 +52,6 @@ const (
 	// ProtoflowServiceNewPromptProcedure is the fully-qualified name of the ProtoflowService's
 	// NewPrompt RPC.
 	ProtoflowServiceNewPromptProcedure = "/protoflow.ProtoflowService/NewPrompt"
-	// ProtoflowServiceUploadContentProcedure is the fully-qualified name of the ProtoflowService's
-	// UploadContent RPC.
-	ProtoflowServiceUploadContentProcedure = "/protoflow.ProtoflowService/UploadContent"
 	// ProtoflowServiceInferProcedure is the fully-qualified name of the ProtoflowService's Infer RPC.
 	ProtoflowServiceInferProcedure = "/protoflow.ProtoflowService/Infer"
 	// ProtoflowServiceChatProcedure is the fully-qualified name of the ProtoflowService's Chat RPC.
@@ -78,7 +75,6 @@ type ProtoflowServiceClient interface {
 	DeleteSession(context.Context, *connect_go.Request[gen.DeleteSessionRequest]) (*connect_go.Response[emptypb.Empty], error)
 	GetPrompts(context.Context, *connect_go.Request[gen.GetPromptsRequest]) (*connect_go.Response[gen.GetPromptsResponse], error)
 	NewPrompt(context.Context, *connect_go.Request[gen.Prompt]) (*connect_go.Response[gen.Prompt], error)
-	UploadContent(context.Context, *connect_go.Request[gen.UploadContentRequest]) (*connect_go.ServerStreamForClient[gen.ChatResponse], error)
 	Infer(context.Context, *connect_go.Request[gen.InferRequest]) (*connect_go.ServerStreamForClient[gen.InferResponse], error)
 	Chat(context.Context, *connect_go.Request[gen.ChatRequest]) (*connect_go.ServerStreamForClient[gen.ChatResponse], error)
 	ConvertFile(context.Context, *connect_go.Request[gen.ConvertFileRequest]) (*connect_go.Response[gen.FilePath], error)
@@ -126,11 +122,6 @@ func NewProtoflowServiceClient(httpClient connect_go.HTTPClient, baseURL string,
 			baseURL+ProtoflowServiceNewPromptProcedure,
 			opts...,
 		),
-		uploadContent: connect_go.NewClient[gen.UploadContentRequest, gen.ChatResponse](
-			httpClient,
-			baseURL+ProtoflowServiceUploadContentProcedure,
-			opts...,
-		),
 		infer: connect_go.NewClient[gen.InferRequest, gen.InferResponse](
 			httpClient,
 			baseURL+ProtoflowServiceInferProcedure,
@@ -167,7 +158,6 @@ type protoflowServiceClient struct {
 	deleteSession        *connect_go.Client[gen.DeleteSessionRequest, emptypb.Empty]
 	getPrompts           *connect_go.Client[gen.GetPromptsRequest, gen.GetPromptsResponse]
 	newPrompt            *connect_go.Client[gen.Prompt, gen.Prompt]
-	uploadContent        *connect_go.Client[gen.UploadContentRequest, gen.ChatResponse]
 	infer                *connect_go.Client[gen.InferRequest, gen.InferResponse]
 	chat                 *connect_go.Client[gen.ChatRequest, gen.ChatResponse]
 	convertFile          *connect_go.Client[gen.ConvertFileRequest, gen.FilePath]
@@ -205,11 +195,6 @@ func (c *protoflowServiceClient) NewPrompt(ctx context.Context, req *connect_go.
 	return c.newPrompt.CallUnary(ctx, req)
 }
 
-// UploadContent calls protoflow.ProtoflowService.UploadContent.
-func (c *protoflowServiceClient) UploadContent(ctx context.Context, req *connect_go.Request[gen.UploadContentRequest]) (*connect_go.ServerStreamForClient[gen.ChatResponse], error) {
-	return c.uploadContent.CallServerStream(ctx, req)
-}
-
 // Infer calls protoflow.ProtoflowService.Infer.
 func (c *protoflowServiceClient) Infer(ctx context.Context, req *connect_go.Request[gen.InferRequest]) (*connect_go.ServerStreamForClient[gen.InferResponse], error) {
 	return c.infer.CallServerStream(ctx, req)
@@ -243,7 +228,6 @@ type ProtoflowServiceHandler interface {
 	DeleteSession(context.Context, *connect_go.Request[gen.DeleteSessionRequest]) (*connect_go.Response[emptypb.Empty], error)
 	GetPrompts(context.Context, *connect_go.Request[gen.GetPromptsRequest]) (*connect_go.Response[gen.GetPromptsResponse], error)
 	NewPrompt(context.Context, *connect_go.Request[gen.Prompt]) (*connect_go.Response[gen.Prompt], error)
-	UploadContent(context.Context, *connect_go.Request[gen.UploadContentRequest], *connect_go.ServerStream[gen.ChatResponse]) error
 	Infer(context.Context, *connect_go.Request[gen.InferRequest], *connect_go.ServerStream[gen.InferResponse]) error
 	Chat(context.Context, *connect_go.Request[gen.ChatRequest], *connect_go.ServerStream[gen.ChatResponse]) error
 	ConvertFile(context.Context, *connect_go.Request[gen.ConvertFileRequest]) (*connect_go.Response[gen.FilePath], error)
@@ -287,11 +271,6 @@ func NewProtoflowServiceHandler(svc ProtoflowServiceHandler, opts ...connect_go.
 		svc.NewPrompt,
 		opts...,
 	)
-	protoflowServiceUploadContentHandler := connect_go.NewServerStreamHandler(
-		ProtoflowServiceUploadContentProcedure,
-		svc.UploadContent,
-		opts...,
-	)
 	protoflowServiceInferHandler := connect_go.NewServerStreamHandler(
 		ProtoflowServiceInferProcedure,
 		svc.Infer,
@@ -331,8 +310,6 @@ func NewProtoflowServiceHandler(svc ProtoflowServiceHandler, opts ...connect_go.
 			protoflowServiceGetPromptsHandler.ServeHTTP(w, r)
 		case ProtoflowServiceNewPromptProcedure:
 			protoflowServiceNewPromptHandler.ServeHTTP(w, r)
-		case ProtoflowServiceUploadContentProcedure:
-			protoflowServiceUploadContentHandler.ServeHTTP(w, r)
 		case ProtoflowServiceInferProcedure:
 			protoflowServiceInferHandler.ServeHTTP(w, r)
 		case ProtoflowServiceChatProcedure:
@@ -374,10 +351,6 @@ func (UnimplementedProtoflowServiceHandler) GetPrompts(context.Context, *connect
 
 func (UnimplementedProtoflowServiceHandler) NewPrompt(context.Context, *connect_go.Request[gen.Prompt]) (*connect_go.Response[gen.Prompt], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("protoflow.ProtoflowService.NewPrompt is not implemented"))
-}
-
-func (UnimplementedProtoflowServiceHandler) UploadContent(context.Context, *connect_go.Request[gen.UploadContentRequest], *connect_go.ServerStream[gen.ChatResponse]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("protoflow.ProtoflowService.UploadContent is not implemented"))
 }
 
 func (UnimplementedProtoflowServiceHandler) Infer(context.Context, *connect_go.Request[gen.InferRequest], *connect_go.ServerStream[gen.InferResponse]) error {

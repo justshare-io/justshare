@@ -65,28 +65,6 @@ export const ContentDrawer: React.FC<{}> = () => {
                         </div>
                         <div className={""}>
                             <div className="flex flex-row space-x-2">
-                                <ul className="menu bg-base-200 w-56 rounded-box">
-                                    <li><a>Item 1</a></li>
-                                    <li>
-                                        <details open>
-                                            <summary>Parent</summary>
-                                            <ul>
-                                                <li><a>Submenu 1</a></li>
-                                                <li><a>Submenu 2</a></li>
-                                                <li>
-                                                    <details open>
-                                                        <summary>Parent</summary>
-                                                        <ul>
-                                                            <li><a>Submenu 1</a></li>
-                                                            <li><a>Submenu 2</a></li>
-                                                        </ul>
-                                                    </details>
-                                                </li>
-                                            </ul>
-                                        </details>
-                                    </li>
-                                    <li><a>Item 3</a></li>
-                                </ul>
                                 <ContentTable displayContent={selected.displayContent} />
                             </div>
                         </div>
@@ -125,6 +103,7 @@ const ContentTable: React.FC<{displayContent: DisplayContent[]}> = ({displayCont
             console.error('failed to delete', e)
         }
     }
+    // https://daisyui.com/components/carousel/#item4
     return (
         <Splide aria-label="referenced content" className={"w-full h-72"} options={{
             perPage: 3,

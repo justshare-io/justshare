@@ -222,8 +222,8 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 			}))).ServeHTTP(w, r)
 			return
 		}
-		if r.URL.Path == "/upload" || strings.HasPrefix(r.URL.Path, "/upload/") {
-			r.URL.Path = strings.Replace(r.URL.Path, "/upload", "", 1)
+		if r.URL.Path == "/uploads" || strings.HasPrefix(r.URL.Path, "/uploads/") {
+			r.URL.Path = strings.Replace(r.URL.Path, "/uploads", "", 1)
 			mediaFileServer.ServeHTTP(w, r)
 			return
 		}

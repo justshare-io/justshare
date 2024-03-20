@@ -28,8 +28,10 @@ type ContentQuery struct {
 	predicates   []predicate.Content
 	withUser     *UserQuery
 	withTags     *TagQuery
-	withChildren *ContentQuery
 	withParents  *ContentQuery
+	withChildren *ContentQuery
+	withCurrent  *ContentQuery
+	withVersions *ContentQuery
 	withGroups   *GroupQuery
 	withFKs      bool
 	// intermediate query (i.e. traversal path).
@@ -112,6 +114,28 @@ func (cq *ContentQuery) QueryTags() *TagQuery {
 	return query
 }
 
+// QueryParents chains the current query on the "parents" edge.
+func (cq *ContentQuery) QueryParents() *ContentQuery {
+	query := (&ContentClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(content.Table, content.FieldID, selector),
+			sqlgraph.To(content.Table, content.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, content.ParentsTable, content.ParentsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryChildren chains the current query on the "children" edge.
 func (cq *ContentQuery) QueryChildren() *ContentQuery {
 	query := (&ContentClient{config: cq.config}).Query()
@@ -134,8 +158,8 @@ func (cq *ContentQuery) QueryChildren() *ContentQuery {
 	return query
 }
 
-// QueryParents chains the current query on the "parents" edge.
-func (cq *ContentQuery) QueryParents() *ContentQuery {
+// QueryCurrent chains the current query on the "current" edge.
+func (cq *ContentQuery) QueryCurrent() *ContentQuery {
 	query := (&ContentClient{config: cq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
@@ -148,7 +172,29 @@ func (cq *ContentQuery) QueryParents() *ContentQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(content.Table, content.FieldID, selector),
 			sqlgraph.To(content.Table, content.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, content.ParentsTable, content.ParentsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, content.CurrentTable, content.CurrentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryVersions chains the current query on the "versions" edge.
+func (cq *ContentQuery) QueryVersions() *ContentQuery {
+	query := (&ContentClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(content.Table, content.FieldID, selector),
+			sqlgraph.To(content.Table, content.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, content.VersionsTable, content.VersionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -372,8 +418,10 @@ func (cq *ContentQuery) Clone() *ContentQuery {
 		predicates:   append([]predicate.Content{}, cq.predicates...),
 		withUser:     cq.withUser.Clone(),
 		withTags:     cq.withTags.Clone(),
-		withChildren: cq.withChildren.Clone(),
 		withParents:  cq.withParents.Clone(),
+		withChildren: cq.withChildren.Clone(),
+		withCurrent:  cq.withCurrent.Clone(),
+		withVersions: cq.withVersions.Clone(),
 		withGroups:   cq.withGroups.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
@@ -403,6 +451,17 @@ func (cq *ContentQuery) WithTags(opts ...func(*TagQuery)) *ContentQuery {
 	return cq
 }
 
+// WithParents tells the query-builder to eager-load the nodes that are connected to
+// the "parents" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ContentQuery) WithParents(opts ...func(*ContentQuery)) *ContentQuery {
+	query := (&ContentClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withParents = query
+	return cq
+}
+
 // WithChildren tells the query-builder to eager-load the nodes that are connected to
 // the "children" edge. The optional arguments are used to configure the query builder of the edge.
 func (cq *ContentQuery) WithChildren(opts ...func(*ContentQuery)) *ContentQuery {
@@ -414,14 +473,25 @@ func (cq *ContentQuery) WithChildren(opts ...func(*ContentQuery)) *ContentQuery 
 	return cq
 }
 
-// WithParents tells the query-builder to eager-load the nodes that are connected to
-// the "parents" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ContentQuery) WithParents(opts ...func(*ContentQuery)) *ContentQuery {
+// WithCurrent tells the query-builder to eager-load the nodes that are connected to
+// the "current" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ContentQuery) WithCurrent(opts ...func(*ContentQuery)) *ContentQuery {
 	query := (&ContentClient{config: cq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	cq.withParents = query
+	cq.withCurrent = query
+	return cq
+}
+
+// WithVersions tells the query-builder to eager-load the nodes that are connected to
+// the "versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ContentQuery) WithVersions(opts ...func(*ContentQuery)) *ContentQuery {
+	query := (&ContentClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withVersions = query
 	return cq
 }
 
@@ -515,15 +585,17 @@ func (cq *ContentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cont
 		nodes       = []*Content{}
 		withFKs     = cq.withFKs
 		_spec       = cq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [7]bool{
 			cq.withUser != nil,
 			cq.withTags != nil,
-			cq.withChildren != nil,
 			cq.withParents != nil,
+			cq.withChildren != nil,
+			cq.withCurrent != nil,
+			cq.withVersions != nil,
 			cq.withGroups != nil,
 		}
 	)
-	if cq.withUser != nil {
+	if cq.withUser != nil || cq.withCurrent != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -560,6 +632,13 @@ func (cq *ContentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cont
 			return nil, err
 		}
 	}
+	if query := cq.withParents; query != nil {
+		if err := cq.loadParents(ctx, query, nodes,
+			func(n *Content) { n.Edges.Parents = []*Content{} },
+			func(n *Content, e *Content) { n.Edges.Parents = append(n.Edges.Parents, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := cq.withChildren; query != nil {
 		if err := cq.loadChildren(ctx, query, nodes,
 			func(n *Content) { n.Edges.Children = []*Content{} },
@@ -567,10 +646,16 @@ func (cq *ContentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cont
 			return nil, err
 		}
 	}
-	if query := cq.withParents; query != nil {
-		if err := cq.loadParents(ctx, query, nodes,
-			func(n *Content) { n.Edges.Parents = []*Content{} },
-			func(n *Content, e *Content) { n.Edges.Parents = append(n.Edges.Parents, e) }); err != nil {
+	if query := cq.withCurrent; query != nil {
+		if err := cq.loadCurrent(ctx, query, nodes, nil,
+			func(n *Content, e *Content) { n.Edges.Current = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withVersions; query != nil {
+		if err := cq.loadVersions(ctx, query, nodes,
+			func(n *Content) { n.Edges.Versions = []*Content{} },
+			func(n *Content, e *Content) { n.Edges.Versions = append(n.Edges.Versions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -677,6 +762,67 @@ func (cq *ContentQuery) loadTags(ctx context.Context, query *TagQuery, nodes []*
 	}
 	return nil
 }
+func (cq *ContentQuery) loadParents(ctx context.Context, query *ContentQuery, nodes []*Content, init func(*Content), assign func(*Content, *Content)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*Content)
+	nids := make(map[uuid.UUID]map[*Content]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(content.ParentsTable)
+		s.Join(joinT).On(s.C(content.FieldID), joinT.C(content.ParentsPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(content.ParentsPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(content.ParentsPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Content]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Content](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "parents" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
 func (cq *ContentQuery) loadChildren(ctx context.Context, query *ContentQuery, nodes []*Content, init func(*Content), assign func(*Content, *Content)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[uuid.UUID]*Content)
@@ -738,64 +884,66 @@ func (cq *ContentQuery) loadChildren(ctx context.Context, query *ContentQuery, n
 	}
 	return nil
 }
-func (cq *ContentQuery) loadParents(ctx context.Context, query *ContentQuery, nodes []*Content, init func(*Content), assign func(*Content, *Content)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[uuid.UUID]*Content)
-	nids := make(map[uuid.UUID]map[*Content]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
-		if init != nil {
-			init(node)
+func (cq *ContentQuery) loadCurrent(ctx context.Context, query *ContentQuery, nodes []*Content, init func(*Content), assign func(*Content, *Content)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Content)
+	for i := range nodes {
+		if nodes[i].content_versions == nil {
+			continue
 		}
+		fk := *nodes[i].content_versions
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(content.ParentsTable)
-		s.Join(joinT).On(s.C(content.FieldID), joinT.C(content.ParentsPrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(content.ParentsPrimaryKey[1]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(content.ParentsPrimaryKey[1]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
+	if len(ids) == 0 {
+		return nil
 	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(uuid.UUID)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := *values[0].(*uuid.UUID)
-				inValue := *values[1].(*uuid.UUID)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*Content]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*Content](ctx, query, qr, query.inters)
+	query.Where(content.IDIn(ids...))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "parents" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "content_versions" returned %v`, n.ID)
 		}
-		for kn := range nodes {
-			assign(kn, n)
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (cq *ContentQuery) loadVersions(ctx context.Context, query *ContentQuery, nodes []*Content, init func(*Content), assign func(*Content, *Content)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Content)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Content(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(content.VersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.content_versions
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "content_versions" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "content_versions" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

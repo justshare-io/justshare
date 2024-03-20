@@ -62,12 +62,17 @@ type ContentMutation struct {
 	tags            map[uuid.UUID]struct{}
 	removedtags     map[uuid.UUID]struct{}
 	clearedtags     bool
-	children        map[uuid.UUID]struct{}
-	removedchildren map[uuid.UUID]struct{}
-	clearedchildren bool
 	parents         map[uuid.UUID]struct{}
 	removedparents  map[uuid.UUID]struct{}
 	clearedparents  bool
+	children        map[uuid.UUID]struct{}
+	removedchildren map[uuid.UUID]struct{}
+	clearedchildren bool
+	current         *uuid.UUID
+	clearedcurrent  bool
+	versions        map[uuid.UUID]struct{}
+	removedversions map[uuid.UUID]struct{}
+	clearedversions bool
 	groups          map[uuid.UUID]struct{}
 	removedgroups   map[uuid.UUID]struct{}
 	clearedgroups   bool
@@ -430,6 +435,60 @@ func (m *ContentMutation) ResetTags() {
 	m.removedtags = nil
 }
 
+// AddParentIDs adds the "parents" edge to the Content entity by ids.
+func (m *ContentMutation) AddParentIDs(ids ...uuid.UUID) {
+	if m.parents == nil {
+		m.parents = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.parents[ids[i]] = struct{}{}
+	}
+}
+
+// ClearParents clears the "parents" edge to the Content entity.
+func (m *ContentMutation) ClearParents() {
+	m.clearedparents = true
+}
+
+// ParentsCleared reports if the "parents" edge to the Content entity was cleared.
+func (m *ContentMutation) ParentsCleared() bool {
+	return m.clearedparents
+}
+
+// RemoveParentIDs removes the "parents" edge to the Content entity by IDs.
+func (m *ContentMutation) RemoveParentIDs(ids ...uuid.UUID) {
+	if m.removedparents == nil {
+		m.removedparents = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.parents, ids[i])
+		m.removedparents[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedParents returns the removed IDs of the "parents" edge to the Content entity.
+func (m *ContentMutation) RemovedParentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedparents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ParentsIDs returns the "parents" edge IDs in the mutation.
+func (m *ContentMutation) ParentsIDs() (ids []uuid.UUID) {
+	for id := range m.parents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetParents resets all changes to the "parents" edge.
+func (m *ContentMutation) ResetParents() {
+	m.parents = nil
+	m.clearedparents = false
+	m.removedparents = nil
+}
+
 // AddChildIDs adds the "children" edge to the Content entity by ids.
 func (m *ContentMutation) AddChildIDs(ids ...uuid.UUID) {
 	if m.children == nil {
@@ -484,58 +543,97 @@ func (m *ContentMutation) ResetChildren() {
 	m.removedchildren = nil
 }
 
-// AddParentIDs adds the "parents" edge to the Content entity by ids.
-func (m *ContentMutation) AddParentIDs(ids ...uuid.UUID) {
-	if m.parents == nil {
-		m.parents = make(map[uuid.UUID]struct{})
+// SetCurrentID sets the "current" edge to the Content entity by id.
+func (m *ContentMutation) SetCurrentID(id uuid.UUID) {
+	m.current = &id
+}
+
+// ClearCurrent clears the "current" edge to the Content entity.
+func (m *ContentMutation) ClearCurrent() {
+	m.clearedcurrent = true
+}
+
+// CurrentCleared reports if the "current" edge to the Content entity was cleared.
+func (m *ContentMutation) CurrentCleared() bool {
+	return m.clearedcurrent
+}
+
+// CurrentID returns the "current" edge ID in the mutation.
+func (m *ContentMutation) CurrentID() (id uuid.UUID, exists bool) {
+	if m.current != nil {
+		return *m.current, true
+	}
+	return
+}
+
+// CurrentIDs returns the "current" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CurrentID instead. It exists only for internal usage by the builders.
+func (m *ContentMutation) CurrentIDs() (ids []uuid.UUID) {
+	if id := m.current; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCurrent resets all changes to the "current" edge.
+func (m *ContentMutation) ResetCurrent() {
+	m.current = nil
+	m.clearedcurrent = false
+}
+
+// AddVersionIDs adds the "versions" edge to the Content entity by ids.
+func (m *ContentMutation) AddVersionIDs(ids ...uuid.UUID) {
+	if m.versions == nil {
+		m.versions = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.parents[ids[i]] = struct{}{}
+		m.versions[ids[i]] = struct{}{}
 	}
 }
 
-// ClearParents clears the "parents" edge to the Content entity.
-func (m *ContentMutation) ClearParents() {
-	m.clearedparents = true
+// ClearVersions clears the "versions" edge to the Content entity.
+func (m *ContentMutation) ClearVersions() {
+	m.clearedversions = true
 }
 
-// ParentsCleared reports if the "parents" edge to the Content entity was cleared.
-func (m *ContentMutation) ParentsCleared() bool {
-	return m.clearedparents
+// VersionsCleared reports if the "versions" edge to the Content entity was cleared.
+func (m *ContentMutation) VersionsCleared() bool {
+	return m.clearedversions
 }
 
-// RemoveParentIDs removes the "parents" edge to the Content entity by IDs.
-func (m *ContentMutation) RemoveParentIDs(ids ...uuid.UUID) {
-	if m.removedparents == nil {
-		m.removedparents = make(map[uuid.UUID]struct{})
+// RemoveVersionIDs removes the "versions" edge to the Content entity by IDs.
+func (m *ContentMutation) RemoveVersionIDs(ids ...uuid.UUID) {
+	if m.removedversions == nil {
+		m.removedversions = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.parents, ids[i])
-		m.removedparents[ids[i]] = struct{}{}
+		delete(m.versions, ids[i])
+		m.removedversions[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedParents returns the removed IDs of the "parents" edge to the Content entity.
-func (m *ContentMutation) RemovedParentsIDs() (ids []uuid.UUID) {
-	for id := range m.removedparents {
+// RemovedVersions returns the removed IDs of the "versions" edge to the Content entity.
+func (m *ContentMutation) RemovedVersionsIDs() (ids []uuid.UUID) {
+	for id := range m.removedversions {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ParentsIDs returns the "parents" edge IDs in the mutation.
-func (m *ContentMutation) ParentsIDs() (ids []uuid.UUID) {
-	for id := range m.parents {
+// VersionsIDs returns the "versions" edge IDs in the mutation.
+func (m *ContentMutation) VersionsIDs() (ids []uuid.UUID) {
+	for id := range m.versions {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetParents resets all changes to the "parents" edge.
-func (m *ContentMutation) ResetParents() {
-	m.parents = nil
-	m.clearedparents = false
-	m.removedparents = nil
+// ResetVersions resets all changes to the "versions" edge.
+func (m *ContentMutation) ResetVersions() {
+	m.versions = nil
+	m.clearedversions = false
+	m.removedversions = nil
 }
 
 // AddGroupIDs adds the "groups" edge to the Group entity by ids.
@@ -785,18 +883,24 @@ func (m *ContentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ContentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 7)
 	if m.user != nil {
 		edges = append(edges, content.EdgeUser)
 	}
 	if m.tags != nil {
 		edges = append(edges, content.EdgeTags)
 	}
+	if m.parents != nil {
+		edges = append(edges, content.EdgeParents)
+	}
 	if m.children != nil {
 		edges = append(edges, content.EdgeChildren)
 	}
-	if m.parents != nil {
-		edges = append(edges, content.EdgeParents)
+	if m.current != nil {
+		edges = append(edges, content.EdgeCurrent)
+	}
+	if m.versions != nil {
+		edges = append(edges, content.EdgeVersions)
 	}
 	if m.groups != nil {
 		edges = append(edges, content.EdgeGroups)
@@ -818,15 +922,25 @@ func (m *ContentMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case content.EdgeParents:
+		ids := make([]ent.Value, 0, len(m.parents))
+		for id := range m.parents {
+			ids = append(ids, id)
+		}
+		return ids
 	case content.EdgeChildren:
 		ids := make([]ent.Value, 0, len(m.children))
 		for id := range m.children {
 			ids = append(ids, id)
 		}
 		return ids
-	case content.EdgeParents:
-		ids := make([]ent.Value, 0, len(m.parents))
-		for id := range m.parents {
+	case content.EdgeCurrent:
+		if id := m.current; id != nil {
+			return []ent.Value{*id}
+		}
+	case content.EdgeVersions:
+		ids := make([]ent.Value, 0, len(m.versions))
+		for id := range m.versions {
 			ids = append(ids, id)
 		}
 		return ids
@@ -842,15 +956,18 @@ func (m *ContentMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ContentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 7)
 	if m.removedtags != nil {
 		edges = append(edges, content.EdgeTags)
+	}
+	if m.removedparents != nil {
+		edges = append(edges, content.EdgeParents)
 	}
 	if m.removedchildren != nil {
 		edges = append(edges, content.EdgeChildren)
 	}
-	if m.removedparents != nil {
-		edges = append(edges, content.EdgeParents)
+	if m.removedversions != nil {
+		edges = append(edges, content.EdgeVersions)
 	}
 	if m.removedgroups != nil {
 		edges = append(edges, content.EdgeGroups)
@@ -868,15 +985,21 @@ func (m *ContentMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case content.EdgeParents:
+		ids := make([]ent.Value, 0, len(m.removedparents))
+		for id := range m.removedparents {
+			ids = append(ids, id)
+		}
+		return ids
 	case content.EdgeChildren:
 		ids := make([]ent.Value, 0, len(m.removedchildren))
 		for id := range m.removedchildren {
 			ids = append(ids, id)
 		}
 		return ids
-	case content.EdgeParents:
-		ids := make([]ent.Value, 0, len(m.removedparents))
-		for id := range m.removedparents {
+	case content.EdgeVersions:
+		ids := make([]ent.Value, 0, len(m.removedversions))
+		for id := range m.removedversions {
 			ids = append(ids, id)
 		}
 		return ids
@@ -892,18 +1015,24 @@ func (m *ContentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ContentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 7)
 	if m.cleareduser {
 		edges = append(edges, content.EdgeUser)
 	}
 	if m.clearedtags {
 		edges = append(edges, content.EdgeTags)
 	}
+	if m.clearedparents {
+		edges = append(edges, content.EdgeParents)
+	}
 	if m.clearedchildren {
 		edges = append(edges, content.EdgeChildren)
 	}
-	if m.clearedparents {
-		edges = append(edges, content.EdgeParents)
+	if m.clearedcurrent {
+		edges = append(edges, content.EdgeCurrent)
+	}
+	if m.clearedversions {
+		edges = append(edges, content.EdgeVersions)
 	}
 	if m.clearedgroups {
 		edges = append(edges, content.EdgeGroups)
@@ -919,10 +1048,14 @@ func (m *ContentMutation) EdgeCleared(name string) bool {
 		return m.cleareduser
 	case content.EdgeTags:
 		return m.clearedtags
-	case content.EdgeChildren:
-		return m.clearedchildren
 	case content.EdgeParents:
 		return m.clearedparents
+	case content.EdgeChildren:
+		return m.clearedchildren
+	case content.EdgeCurrent:
+		return m.clearedcurrent
+	case content.EdgeVersions:
+		return m.clearedversions
 	case content.EdgeGroups:
 		return m.clearedgroups
 	}
@@ -935,6 +1068,9 @@ func (m *ContentMutation) ClearEdge(name string) error {
 	switch name {
 	case content.EdgeUser:
 		m.ClearUser()
+		return nil
+	case content.EdgeCurrent:
+		m.ClearCurrent()
 		return nil
 	}
 	return fmt.Errorf("unknown Content unique edge %s", name)
@@ -950,11 +1086,17 @@ func (m *ContentMutation) ResetEdge(name string) error {
 	case content.EdgeTags:
 		m.ResetTags()
 		return nil
+	case content.EdgeParents:
+		m.ResetParents()
+		return nil
 	case content.EdgeChildren:
 		m.ResetChildren()
 		return nil
-	case content.EdgeParents:
-		m.ResetParents()
+	case content.EdgeCurrent:
+		m.ResetCurrent()
+		return nil
+	case content.EdgeVersions:
+		m.ResetVersions()
 		return nil
 	case content.EdgeGroups:
 		m.ResetGroups()

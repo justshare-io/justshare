@@ -45,11 +45,6 @@ public protocol Protoflow_ProtoflowServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `newPrompt`(request: Protoflow_Prompt, headers: Connect.Headers) async -> ResponseMessage<Protoflow_Prompt>
 
-    func `uploadContent`(headers: Connect.Headers, onResult: @escaping @Sendable (Connect.StreamResult<Protoflow_ChatResponse>) -> Void) -> any Connect.ServerOnlyStreamInterface<Protoflow_UploadContentRequest>
-
-    @available(iOS 13, *)
-    func `uploadContent`(headers: Connect.Headers) -> any Connect.ServerOnlyAsyncStreamInterface<Protoflow_UploadContentRequest, Protoflow_ChatResponse>
-
     func `infer`(headers: Connect.Headers, onResult: @escaping @Sendable (Connect.StreamResult<Protoflow_InferResponse>) -> Void) -> any Connect.ServerOnlyStreamInterface<Protoflow_InferRequest>
 
     @available(iOS 13, *)
@@ -147,15 +142,6 @@ public final class Protoflow_ProtoflowServiceClient: Protoflow_ProtoflowServiceC
         return await self.client.unary(path: "/protoflow.ProtoflowService/NewPrompt", request: request, headers: headers)
     }
 
-    public func `uploadContent`(headers: Connect.Headers = [:], onResult: @escaping @Sendable (Connect.StreamResult<Protoflow_ChatResponse>) -> Void) -> any Connect.ServerOnlyStreamInterface<Protoflow_UploadContentRequest> {
-        return self.client.serverOnlyStream(path: "/protoflow.ProtoflowService/UploadContent", headers: headers, onResult: onResult)
-    }
-
-    @available(iOS 13, *)
-    public func `uploadContent`(headers: Connect.Headers = [:]) -> any Connect.ServerOnlyAsyncStreamInterface<Protoflow_UploadContentRequest, Protoflow_ChatResponse> {
-        return self.client.serverOnlyStream(path: "/protoflow.ProtoflowService/UploadContent", headers: headers)
-    }
-
     public func `infer`(headers: Connect.Headers = [:], onResult: @escaping @Sendable (Connect.StreamResult<Protoflow_InferResponse>) -> Void) -> any Connect.ServerOnlyStreamInterface<Protoflow_InferRequest> {
         return self.client.serverOnlyStream(path: "/protoflow.ProtoflowService/Infer", headers: headers, onResult: onResult)
     }
@@ -212,7 +198,6 @@ public final class Protoflow_ProtoflowServiceClient: Protoflow_ProtoflowServiceC
             public static let deleteSession = Connect.MethodSpec(name: "DeleteSession", service: "protoflow.ProtoflowService", type: .unary)
             public static let getPrompts = Connect.MethodSpec(name: "GetPrompts", service: "protoflow.ProtoflowService", type: .unary)
             public static let newPrompt = Connect.MethodSpec(name: "NewPrompt", service: "protoflow.ProtoflowService", type: .unary)
-            public static let uploadContent = Connect.MethodSpec(name: "UploadContent", service: "protoflow.ProtoflowService", type: .serverStream)
             public static let infer = Connect.MethodSpec(name: "Infer", service: "protoflow.ProtoflowService", type: .serverStream)
             public static let chat = Connect.MethodSpec(name: "Chat", service: "protoflow.ProtoflowService", type: .serverStream)
             public static let convertFile = Connect.MethodSpec(name: "ConvertFile", service: "protoflow.ProtoflowService", type: .unary)

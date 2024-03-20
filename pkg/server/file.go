@@ -40,7 +40,7 @@ func (a *APIHTTPServer) fileUploadHandler(w http.ResponseWriter, r *http.Request
 	slog.Debug("Uploaded File", "filename", handler.Filename, "size", handler.Size, "mime", handler.Header)
 
 	id := uuid.NewString()
-	d, err := a.builder.Dir("upload").File(id)
+	d, err := a.builder.Dir("uploads").File(id)
 	if err != nil {
 		writeError(http.StatusInternalServerError, err, "Error creating a directory for the uploaded file")
 		return
