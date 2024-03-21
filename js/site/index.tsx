@@ -2,8 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import 'source-map-support/register';
 import {App} from "@/App";
-import * as rrweb from 'rrweb';
-import {HTMLEvents, RRWebRecorder} from "@/event/HTMLEvents";
 import './wasm_exec';
 
 global.React = React;

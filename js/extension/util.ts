@@ -1,6 +1,16 @@
-import {Content, Data, Post, File} from "@/rpc/content/content_pb";
+import {Content, Data, Post, File, Page} from "@/rpc/content/content_pb";
 
-const ITEMS_PER_PAGE = 100; // Adjust as required
+const ITEMS_PER_PAGE = 100;
+
+export function pageContent(): Content {
+    return new Content({
+        tags: [],
+        type: {
+            case: 'page',
+            value: new Page({})
+        }
+    });
+}
 
 export function fileContent(): Content {
     return new Content({

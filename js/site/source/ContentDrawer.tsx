@@ -28,8 +28,8 @@ export const ContentDrawer: React.FC<{}> = () => {
         <div className="content-drawer z-50">
             <input id="my-drawer" type="checkbox" className="content-drawer-toggle" />
             <div className="content-drawer-content">
-                <label htmlFor="my-drawer" className="content-drawer-button">
-                    <ListBulletIcon className="h-6 w-6" />
+                <label htmlFor="my-drawer" className="btn content-drawer-button">
+                    content
                 </label>
             </div>
             <div className="content-drawer-side fixed w-screen">
@@ -103,17 +103,10 @@ const ContentTable: React.FC<{displayContent: DisplayContent[]}> = ({displayCont
             console.error('failed to delete', e)
         }
     }
-    // https://daisyui.com/components/carousel/#item4
     return (
-        <Splide aria-label="referenced content" className={"w-full h-72"} options={{
-            perPage: 3,
-            autoWidth: true,
-            direction: 'ttb',
-            height: '80%',
-        }}>
-            {/*https://slidejs.com/extensions/grid*/}
+        <div className={"h-96 carousel carousel-vertical rounded-box"}>
             {displayContent.filter(notEmpty).map((item, index) => (
-                <SplideSlide key={index}>
+                <div key={index} className={"carousel-item h-full"}>
                     <div className={`flex flex-col p-4 w-96 bg-base-200 text-base-content ${selectedContent?.id === item.content?.id ? 'bg-accent' : ''}`}
                         onClick={(e) => handleCheckboxChange(item.content, true)}
                     >
@@ -131,9 +124,9 @@ const ContentTable: React.FC<{displayContent: DisplayContent[]}> = ({displayCont
                             ))}
                         </div>
                     </div>
-                </SplideSlide>
+                </div>
             ))}
-        </Splide>
+        </div>
     );
 }
 

@@ -48,6 +48,7 @@ import {JustShareSideMenu} from "@/components/JustShareSideMenu";
 import {AIBlock, Blockquote, blockSchema, CodeBlock, insertBlockquote, insertCode} from "@/source/editors/CodeBlock";
 import {RiText} from "react-icons/ri";
 import {last} from "slate";
+import {TemplatePlayground} from "@/components/TemplatePlayground";
 
 const lowlight = createLowlight();
 
@@ -436,6 +437,13 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         abortControllerRef.current?.abort();
     }
 
+    const [selectedTag, setSelectedTag] = useState<string>('');
+    const onAddTag = (tag: string) => {
+        if (tag) {
+            addTag(tag);
+        }
+    };
+
     // TODO breadchris setRelatedContent([...relatedContent, url]);
 
     return (
@@ -443,14 +451,24 @@ export const ContentEditor: React.FC<{}> = ({}) => {
             <CommandMenu />
             <div className="mb-64 flex flex-col">
                 <div className="flex flex-row justify-between">
-                    <span className={"space-x-1"}>
+                    <div>
+                        <span className={"space-x-1"}>
+                        <FilteredTagInput
+                          selectedTag={selectedTag}
+                          setSelectedTag={setSelectedTag}
+                          onAddTag={onAddTag}
+                        />
                         {content?.tags.map((tag) => (
-                            <span key={tag} className="badge badge-outline badge-sm" onClick={() => removeTag(tag)}>{tag}</span>
+                          <span key={tag} className="badge badge-outline badge-sm" onClick={() => removeTag(tag)}>{tag}</span>
                         ))}
-                    </span>
-                    <button onClick={() => settingsModal.current?.showModal()}>
-                        <AdjustmentsHorizontalIcon className="h-6 w-6" />
-                    </button>
+                        </span>
+                    </div>
+                    <div>
+                        <button className={"btn"} onClick={onSubmit}>save</button>
+                        <button onClick={() => settingsModal.current?.showModal()}>
+                            <AdjustmentsHorizontalIcon className="h-6 w-6" />
+                        </button>
+                    </div>
                 </div>
                 {editor && <ContentTypeEditor content={content} onUpdate={editContent} editor={editor} />}
                 <dialog id="my_modal_1" className="modal" ref={settingsModal}>
@@ -466,96 +484,16 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                     </div>
                 </dialog>
             </div>
-            <BottomNav
-                changeContent={changeContent}
-                addTag={addTag}
-                onSend={onSubmit}
-                onStop={onStop}
-                actionRunning={abortControllerRef.current !== undefined}
-            />
+            {/*<BottomNav*/}
+            {/*    changeContent={changeContent}*/}
+            {/*    addTag={addTag}*/}
+            {/*    onSend={onSubmit}*/}
+            {/*    onStop={onStop}*/}
+            {/*    actionRunning={abortControllerRef.current !== undefined}*/}
+            {/*/>*/}
         </div>
     );
 };
-
-const BottomNav: React.FC<{
-    changeContent: (c: Content) => void,
-    addTag: (tag: string) => void,
-    onSend: () => void,
-    onStop: () => void,
-    actionRunning: boolean,
-}> = ({changeContent, addTag, onSend, actionRunning, onStop}) => {
-   const [newContent, setNewContent] = useState(false);
-   const [addingTag, setAddingTag] = useState(false);
-    const [selectedTag, setSelectedTag] = useState<string>('');
-    const onAddTag = (tag: string) => {
-        if (tag) {
-            setAddingTag(false);
-            addTag(tag);
-        }
-    };
-   const onNewClose = () => {
-       setNewContent(false);
-   }
-
-   return (
-       <div className="btm-nav z-50">
-           <Modal open={newContent} onClose={onNewClose}>
-               <div className="flex flex-col">
-                   <div className={"flex flex-row space-y-2"}>
-                       <button className={"btn"} onClick={() => {
-                           changeContent(urlContent('https://example.com', []));
-                           setNewContent(false);
-                       }}>url</button>
-                       <button className={"btn"} onClick={() => {
-                           changeContent(postContent("Don't think, write."));
-                           setNewContent(false);
-                       }}>
-                           post
-                       </button>
-                       <button className={"btn"} onClick={() => {
-                           changeContent(siteContent());
-                           setNewContent(false);
-                       }}>
-                           <a>site</a>
-                       </button>
-                       <button className={"btn"} onClick={() => {
-                           changeContent(fileContent());
-                           setNewContent(false);
-                       }}>
-                           <a>file</a>
-                       </button>
-                   </div>
-                   <button className={"btn"} onClick={onNewClose}>close</button>
-               </div>
-           </Modal>
-           <Modal open={addingTag} onClose={() => setAddingTag(false)}>
-               <div className={"space-y-2"}>
-                   <FilteredTagInput
-                       selectedTag={selectedTag}
-                       setSelectedTag={setSelectedTag}
-                       onAddTag={onAddTag}
-                   />
-                   <button className={"btn"} onClick={() => setAddingTag(false)}>close</button>
-               </div>
-            </Modal>
-           <button onClick={() => setAddingTag(true)}>
-               <TagIcon className="h-6 w-6" />
-           </button>
-           <button onClick={() => setNewContent(true)}>
-               <PlusIcon className="h-6 w-6" />
-           </button>
-           {actionRunning && (
-               <button onClick={onStop}>
-                   <StopIcon className="h-6 w-6" />
-               </button>
-           )}
-           <button onClick={onSend}>
-               <PaperAirplaneIcon className="h-6 w-6" />
-           </button>
-           <ContentDrawer />
-       </div>
-   )
-}
 
 // TODO breadchris useful for when OS does not support voice input, browsers don't have great support
 const VoiceInputButton: React.FC<{onText: (text: string) => void}> = ({onText}) => {
@@ -589,6 +527,8 @@ const ContentTypeEditor: React.FC<{
     const getContent = (content: Content|undefined) => {
         if (content) {
             switch (content.type.case) {
+                case 'page':
+                    return <TemplatePlayground />
                 case 'chatgptConversation':
                     return <ChatGPTConversationEditor
                         className={'space-y-2'}

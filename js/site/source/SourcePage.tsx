@@ -11,9 +11,10 @@ import {ContentEditor} from "@/source/ContentEditor";
 import {useAuth} from "@/auth/state";
 import {FileDrop} from "@/file/FileDrop";
 import {AddTagBadge} from "@/tag/AddTagBadge";
-import {postContent, siteContent, urlContent} from "../../extension/util";
+import {fileContent, pageContent, postContent, siteContent, urlContent} from "../../extension/util";
 import {GroupDialog} from "@/auth/GroupManager";
 import {TagManager} from "@/tag/TagManager";
+import {ContentDrawer} from "@/source/ContentDrawer";
 
 export const SourcePage: React.FC = () => {
     const {
@@ -27,6 +28,9 @@ export const SourcePage: React.FC = () => {
     const { id } = useParams();
     const { logout } = useAuth();
     const [groupsOpen, setGroupsOpen] = useState(false);
+    const {
+        changeContent
+    } = useContentEditor();
 
     useEffect(() => {
         void getSources();
@@ -87,7 +91,48 @@ export const SourcePage: React.FC = () => {
             <div className="flex-grow">
                 <GroupDialog open={groupsOpen} onClose={() => setGroupsOpen(false)} />
                 <div className={"flex flex-row"}>
-                    <TagManager />
+                    <div className={"flex flex-col"}>
+                        <ContentDrawer />
+                        <details className={"dropdown"}>
+                            <summary className={"m-1 btn"}>new</summary>
+                            <ul className={"p-2 shadow menu dropdown-content z-[1] bg-base-100 rounded-box w-52 space-y-2"}>
+                                <li>
+                                    <button className={"btn"} onClick={() => {
+                                        changeContent(urlContent('https://example.com', []));
+                                    }}>url</button>
+                                </li>
+                                <li>
+                                    <button className={"btn"} onClick={() => {
+                                        changeContent(postContent("Don't think, write."));
+                                    }}>
+                                        post
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className={"btn"} onClick={() => {
+                                        changeContent(siteContent());
+                                    }}>
+                                        <a>site</a>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className={"btn"} onClick={() => {
+                                        changeContent(fileContent());
+                                    }}>
+                                        <a>file</a>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className={"btn"} onClick={() => {
+                                        changeContent(pageContent());
+                                    }}>
+                                        <a>page</a>
+                                    </button>
+                                </li>
+                            </ul>
+                        </details>
+                        <TagManager />
+                    </div>
                     <ContentEditor />
                 </div>
                 {/*{sources.length > 1 && (*/}

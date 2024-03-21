@@ -100,7 +100,7 @@ func NewDeployment(
 									Value: fmt.Sprintf("%d", port),
 								},
 								{
-									Name:  "PROXY_URL",
+									Name:  "PROXY",
 									Value: "",
 								},
 								{

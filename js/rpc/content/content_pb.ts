@@ -1205,6 +1205,12 @@ export class Content extends Message<Content> {
      */
     value: AudioVideo;
     case: "audioVideo";
+  } | {
+    /**
+     * @generated from field: content.Page page = 14;
+     */
+    value: Page;
+    case: "page";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Content>) {
@@ -1227,6 +1233,7 @@ export class Content extends Message<Content> {
     { no: 11, name: "chatgpt_conversation", kind: "message", T: Conversation, oneof: "type" },
     { no: 12, name: "browser_history", kind: "message", T: History, oneof: "type" },
     { no: 13, name: "audio_video", kind: "message", T: AudioVideo, oneof: "type" },
+    { no: 14, name: "page", kind: "message", T: Page, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Content {
@@ -1243,6 +1250,43 @@ export class Content extends Message<Content> {
 
   static equals(a: Content | PlainMessage<Content> | undefined, b: Content | PlainMessage<Content> | undefined): boolean {
     return proto3.util.equals(Content, a, b);
+  }
+}
+
+/**
+ * @generated from message content.Page
+ */
+export class Page extends Message<Page> {
+  /**
+   * @generated from field: string html = 1;
+   */
+  html = "";
+
+  constructor(data?: PartialMessage<Page>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "content.Page";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "html", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Page {
+    return new Page().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Page {
+    return new Page().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Page {
+    return new Page().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Page | PlainMessage<Page> | undefined, b: Page | PlainMessage<Page> | undefined): boolean {
+    return proto3.util.equals(Page, a, b);
   }
 }
 

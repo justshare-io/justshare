@@ -602,6 +602,14 @@ public struct Content_Content {
     set {type = .audioVideo(newValue)}
   }
 
+  public var page: Content_Page {
+    get {
+      if case .page(let v)? = type {return v}
+      return Content_Page()
+    }
+    set {type = .page(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Type: Equatable {
@@ -613,6 +621,7 @@ public struct Content_Content {
     case chatgptConversation(Chatgpt_Conversation)
     case browserHistory(Browser_History)
     case audioVideo(Content_AudioVideo)
+    case page(Content_Page)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Content_Content.OneOf_Type, rhs: Content_Content.OneOf_Type) -> Bool {
@@ -652,11 +661,27 @@ public struct Content_Content {
         guard case .audioVideo(let l) = lhs, case .audioVideo(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.page, .page): return {
+        guard case .page(let l) = lhs, case .page(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
       default: return false
       }
     }
   #endif
   }
+
+  public init() {}
+}
+
+public struct Content_Page {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var html: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 }
@@ -1207,6 +1232,7 @@ extension Content_StoredContent: @unchecked Sendable {}
 extension Content_Edge: @unchecked Sendable {}
 extension Content_Content: @unchecked Sendable {}
 extension Content_Content.OneOf_Type: @unchecked Sendable {}
+extension Content_Page: @unchecked Sendable {}
 extension Content_FileUploadResponse: @unchecked Sendable {}
 extension Content_AudioVideo: @unchecked Sendable {}
 extension Content_Slice: @unchecked Sendable {}
@@ -2397,6 +2423,7 @@ extension Content_Content: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     11: .standard(proto: "chatgpt_conversation"),
     12: .standard(proto: "browser_history"),
     13: .standard(proto: "audio_video"),
+    14: .same(proto: "page"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2513,6 +2540,19 @@ extension Content_Content: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
           self.type = .audioVideo(v)
         }
       }()
+      case 14: try {
+        var v: Content_Page?
+        var hadOneofValue = false
+        if let current = self.type {
+          hadOneofValue = true
+          if case .page(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.type = .page(v)
+        }
+      }()
       default: break
       }
     }
@@ -2568,6 +2608,10 @@ extension Content_Content: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       guard case .audioVideo(let v)? = self.type else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
     }()
+    case .page?: try {
+      guard case .page(let v)? = self.type else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
+    }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -2579,6 +2623,38 @@ extension Content_Content: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if lhs.uri != rhs.uri {return false}
     if lhs.id != rhs.id {return false}
     if lhs.type != rhs.type {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Content_Page: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Page"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "html"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.html) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.html.isEmpty {
+      try visitor.visitSingularStringField(value: self.html, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Content_Page, rhs: Content_Page) -> Bool {
+    if lhs.html != rhs.html {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
