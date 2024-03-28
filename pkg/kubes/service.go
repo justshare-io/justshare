@@ -159,6 +159,7 @@ func serviceName(name string) string {
 }
 
 func (s *Service) NewDeployment(ctx context.Context, c *connect.Request[kubes.NewDeploymentRequest]) (*connect.Response[kubes.NewDeploymentResponse], error) {
+	image := c.Msg.Image
 	name := deploymentName(c.Msg.Name)
 	service := serviceName(name)
 	domain := hostName(name)
@@ -190,8 +191,8 @@ func (s *Service) NewDeployment(ctx context.Context, c *connect.Request[kubes.Ne
 	//	return nil, err
 	//}
 
-	slog.Debug("creating deployment", "name", name, "namespace", namespace, "image", s.c.Container)
-	_, err = s.newDeployment(ctx, namespace, NewDeployment(s.c.Container, name, configMapName, port, s.oc, s.cc))
+	slog.Debug("creating deployment", "name", name, "namespace", namespace, "image", image)
+	_, err = s.newDeployment(ctx, namespace, NewDeployment(image, name, configMapName, port, s.oc, s.cc))
 	if err != nil {
 		return nil, err
 	}

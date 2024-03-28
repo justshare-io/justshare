@@ -273,6 +273,9 @@ func (a *APIHTTPServer) Start() error {
 
 	slog.Info("starting http server", "addr", addr)
 
+	// TODO breadchris find a better place in the lifecycle for this
+	a.chatService.Connect()
+
 	//go func() {
 	//	log.Debug().Msg("starting protoflow server")
 	// // TODO listen for interupt

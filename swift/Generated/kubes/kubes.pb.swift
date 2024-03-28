@@ -153,6 +153,8 @@ public struct Kubes_NewDeploymentRequest {
 
   public var domainName: String = String()
 
+  public var image: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -537,6 +539,7 @@ extension Kubes_NewDeploymentRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "name"),
     2: .standard(proto: "domain_name"),
+    3: .same(proto: "image"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -547,6 +550,7 @@ extension Kubes_NewDeploymentRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.domainName) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.image) }()
       default: break
       }
     }
@@ -559,12 +563,16 @@ extension Kubes_NewDeploymentRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
     if !self.domainName.isEmpty {
       try visitor.visitSingularStringField(value: self.domainName, fieldNumber: 2)
     }
+    if !self.image.isEmpty {
+      try visitor.visitSingularStringField(value: self.image, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Kubes_NewDeploymentRequest, rhs: Kubes_NewDeploymentRequest) -> Bool {
     if lhs.name != rhs.name {return false}
     if lhs.domainName != rhs.domainName {return false}
+    if lhs.image != rhs.image {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -55,6 +55,7 @@ message ListDeploymentsResponse {
 message NewDeploymentRequest {
   string name = 1;
   string domain_name = 2;
+  string image = 3;
 }
 
 message NewDeploymentResponse {

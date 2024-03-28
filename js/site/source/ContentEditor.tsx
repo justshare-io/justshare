@@ -21,42 +21,54 @@ import {cleanObject} from "@/util/form";
 import {FileEditor} from "@/source/editors/FileEditor";
 import {SiteEditor} from "@/source/editors/SiteEditor";
 import {ChatGPTConversationEditor} from "@/source/editors/ChatGPTConversationEditor";
-import {ContentDrawer} from "@/source/ContentDrawer";
-import {fileContent, postContent, siteContent, urlContent} from "../../extension/util";
-import css from 'highlight.js/lib/languages/css'
-import js from 'highlight.js/lib/languages/javascript'
-import ts from 'highlight.js/lib/languages/typescript'
-import html from 'highlight.js/lib/languages/xml'
-import go from 'highlight.js/lib/languages/go'
-import {createLowlight} from 'lowlight'
-import {ResizeImage} from "@/source/ResizeImage";
-import {Splide, SplideSlide} from "@splidejs/react-splide";
 import '@splidejs/react-splide/css';
-import {Modal} from "@/components/modal";
 import {FilteredTagInput} from "@/tag/FilteredTagInput";
-import {BlockNoteEditor, defaultBlockSchema, defaultBlockSpecs} from "@blocknote/core";
 import {
-    BlockNoteView,
-    FormattingToolbarPositioner, getDefaultReactSlashMenuItems,
-    HyperlinkToolbarPositioner, ImageToolbarPositioner, ReactSlashMenuItem, SideMenuPositioner,
-    SlashMenuPositioner,
-    useBlockNote
+    BlockNoteEditor,
+    BlockNoteSchema,
+    defaultBlockSchema,
+    defaultBlockSpecs, DefaultSuggestionItem,
+    filterSuggestionItems, insertOrUpdateBlock
+} from "@blocknote/core";
+import {
+    BlockNoteView, DefaultReactSuggestionItem,
+    getDefaultReactSlashMenuItems, SuggestionMenuController,
+    useCreateBlockNote
 } from "@blocknote/react";
 import "@blocknote/react/style.css";
 import {CommandMenu} from "@/components/CommandMenu";
-import {JustShareSideMenu} from "@/components/JustShareSideMenu";
 import {AIBlock, Blockquote, blockSchema, CodeBlock, insertBlockquote, insertCode} from "@/source/editors/CodeBlock";
-import {RiText} from "react-icons/ri";
-import {last} from "slate";
+import {RiAlertFill, RiText} from "react-icons/ri";
 import {TemplatePlayground} from "@/components/TemplatePlayground";
+import {Alert} from "@/source/editors/Alert";
+import {Code} from "@connectrpc/connect";
 
-const lowlight = createLowlight();
+const schema = BlockNoteSchema.create({
+    blockSpecs: {
+        ...defaultBlockSpecs,
+        codeBlock: CodeBlock,
+    }
+});
 
-lowlight.register({html})
-lowlight.register({css})
-lowlight.register({js})
-lowlight.register({ts})
-lowlight.register({go})
+const insertAlert = (editor: typeof schema.BlockNoteEditor) => ({
+    title: "Alert",
+    onItemClick: () => {
+        insertOrUpdateBlock(editor, {
+            type: "alert",
+        });
+    },
+    aliases: [
+        "alert",
+        "notification",
+        "emphasize",
+        "warning",
+        "error",
+        "info",
+        "success",
+    ],
+    group: "Other",
+    icon: <RiAlertFill />,
+});
 
 export const ContentEditor: React.FC<{}> = ({}) => {
     const settingsModal = useRef(null);
@@ -126,7 +138,7 @@ export const ContentEditor: React.FC<{}> = ({}) => {
     const setEditorContent = (content: Content) => {
         setTimeout(async () => {
             const c = await getContent(content);
-            editor.replaceBlocks(editor.topLevelBlocks, c);
+            editor.replaceBlocks(editor.document, c);
         });
     };
 
@@ -272,7 +284,20 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         }
     }
 
-    const onEditorContentChange = async (editor: BlockNoteEditor) => {
+    const editor = useCreateBlockNote({
+        schema,
+    });
+
+    useEffect(() => {
+        if (content) {
+            setEditorContent(content);
+        }
+    }, []);
+
+    const onEditorContentChange = async () => {
+        if (!editor) {
+            return;
+        }
         // TODO breadchris when the editor loads, a few changes are made that would otherwise cause the editor to scroll to the bottom
         const tryToScroll = (state: {initialChanges: number}) => {
             const blockId = editor.getTextCursorPosition().block.id;
@@ -288,8 +313,8 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         }
 
         const newEditor = {
-            blocks: JSON.stringify(editor.topLevelBlocks),
-            html: await editor.blocksToHTMLLossy(editor.topLevelBlocks),
+            blocks: JSON.stringify(editor.document),
+            html: await editor.blocksToHTMLLossy(editor.document),
         };
         localStorage.setItem(editorContent, newEditor.blocks);
         setState((state) => ({
@@ -381,28 +406,6 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         icon: <RiText />,
     };
 
-    const editor: BlockNoteEditor = useBlockNote({
-        blockSpecs: {
-            ...defaultBlockSpecs,
-            // codeBlock: CodeBlock,
-            // aiBlock: AIBlock,
-            blockquote: Blockquote,
-        },
-        slashMenuItems: [
-            ...getDefaultReactSlashMenuItems(blockSchema),
-            // insertCode,
-            insertAI,
-            insertBlockquote,
-        ],
-        onEditorContentChange: onEditorContentChange,
-        onEditorReady: (editor) => {
-            if (content) {
-                setEditorContent(content);
-            }
-        }
-    });
-
-
     const contentFromForm = (): Content|undefined => {
         if (!formControl) {
             return undefined;
@@ -424,12 +427,19 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                 content: contentFromForm(),
                 related: []
             });
-            toast.success('Saved content');
             editContent(resp.content);
             void getSources();
         } catch (e) {
             toast.error('Failed to save content');
             console.error('failed to save', e)
+        }
+        try {
+            // TODO breadchris save content to group
+            const resp = await contentService.publish({});
+            toast.success('Published content');
+        } catch (e) {
+            toast.error('Failed to publish content');
+            console.error('failed to publish', e)
         }
     }
 
@@ -447,7 +457,7 @@ export const ContentEditor: React.FC<{}> = ({}) => {
     // TODO breadchris setRelatedContent([...relatedContent, url]);
 
     return (
-        <div className={"sm:mx-4 lg:mx-16"}>
+        <div className={"sm:mx-4 lg:mx-16 w-full"}>
             <CommandMenu />
             <div className="mb-64 flex flex-col">
                 <div className="flex flex-row justify-between">
@@ -470,7 +480,7 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                         </button>
                     </div>
                 </div>
-                {editor && <ContentTypeEditor content={content} onUpdate={editContent} editor={editor} />}
+                {editor && <ContentTypeEditor onChange={onEditorContentChange} content={content} onUpdate={editContent} editor={editor} />}
                 <dialog id="my_modal_1" className="modal" ref={settingsModal}>
                     <div className="modal-box">
                         {fields && <Form fields={fields} />}
@@ -512,16 +522,36 @@ const VoiceInputButton: React.FC<{onText: (text: string) => void}> = ({onText}) 
 const ContentTypeEditor: React.FC<{
     content: Content|undefined,
     onUpdate: (content: Content) => void,
-    editor: BlockNoteEditor,
-}> = ({content, onUpdate, editor}) => {
+    editor: typeof schema.BlockNoteEditor,
+    onChange: () => void,
+}> = ({content, onUpdate, editor, onChange}) => {
+    const insertCode = (editor: typeof schema.BlockNoteEditor): DefaultReactSuggestionItem => ({
+        title: "Code",
+        onItemClick: () => {
+            insertOrUpdateBlock(editor, {
+                type: "codeBlock",
+            });
+        },
+        aliases: ["codeBlock"],
+        group: "Other",
+        subtext: "Insert a code block",
+        icon: <RiText size={18} />,
+    })
+    const items = [
+        ...getDefaultReactSlashMenuItems(editor),
+        insertCode(editor),
+        insertAlert(editor),
+    ];
     const blockNoteView = (
-        <BlockNoteView className={"touch-pan-y"} editor={editor}>
-            <FormattingToolbarPositioner editor={editor} />
-            <HyperlinkToolbarPositioner editor={editor} />
-            <SlashMenuPositioner editor={editor} />
-            {/*<SideMenuPositioner editor={editor} sideMenu={(props) => <JustShareSideMenu editor={editor} />} />*/}
-            <SideMenuPositioner editor={editor} />
-            <ImageToolbarPositioner editor={editor} />
+        <BlockNoteView className={"touch-pan-y"} editor={editor} onChange={onChange}>
+            <SuggestionMenuController
+                triggerCharacter={"/"}
+                getItems={async (query) =>
+                    filterSuggestionItems(items,
+                        query
+                    )
+                }
+            />
         </BlockNoteView>
     )
     const getContent = (content: Content|undefined) => {

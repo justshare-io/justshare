@@ -17,7 +17,7 @@ import (
 
 func Wire() (*cli.App, error) {
 	panic(wire.Build(
-		NewApp,
+		ProviderSet,
 		log.ProviderSet,
 		config.ProviderSet,
 		server.ProviderSet,

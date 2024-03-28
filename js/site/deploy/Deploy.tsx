@@ -91,6 +91,7 @@ const newDeployment = async (state: DeployState) => {
         const res = await kubesService.newDeployment({
             name: state.name,
             domainName: state.domain,
+            image: state.image,
         });
     } catch (e: any) {
         console.error(e);

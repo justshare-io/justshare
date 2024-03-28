@@ -280,3 +280,28 @@ span.rsjv-value {
 .content-drawer-end .content-drawer-toggle:checked ~ .content-drawer-side > *:not(.content-drawer-overlay) {
   transform: translateY(0%); /* Ensure the transform is reset on toggle */
 }
+
+.resize-container {
+  display: flex;
+  align-items: stretch; /* Align the height of the children */
+}
+
+.resizable {
+  flex: 1; /* Each takes equal space */
+  overflow: auto; /* Adds scrollbars if content overflows */
+  resize: horizontal; /* Allow horizontal resizing */
+  border: 1px solid black; /* Just for visibility */
+  min-width: 50px; /* Minimum width to prevent collapsing */
+}
+
+.resize-left {
+  width: 50%;
+  flex-grow: 1;
+  margin-right: 5px; /* Space between the elements */
+}
+
+.resize-right {
+    width: 50%;
+  flex-grow: 1;
+  margin-left: 5px; /* Space between the elements */
+}

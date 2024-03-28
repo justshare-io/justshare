@@ -63,16 +63,7 @@ export const SourcePage: React.FC = () => {
         setGroupsOpen(true);
     }
 
-    const handlePublish = async () => {
-        try {
-            // TODO breadchris save content to group
-            const resp = await contentService.publish({});
-            toast.success('Published content');
-        } catch (e) {
-            toast.error('Failed to publish content');
-            console.error('failed to publish', e)
-        }
-    }
+    const [sidebarVisible, setSidebarVisible] = useState(false);
 
     return (
         <div className="p-5 h-[95vh] flex flex-col">
@@ -82,16 +73,17 @@ export const SourcePage: React.FC = () => {
                 </div>
                 <div className="flex-none">
                     <ul className="menu menu-horizontal px-1">
+                        <li><a onClick={() => window.location.href = '/app/web'}>web</a></li>
                         <li><a onClick={handleGroups}>groups</a></li>
-                        <li><a onClick={handlePublish}>publish</a></li>
                         <li><a onClick={logout}>logout</a></li>
                     </ul>
                 </div>
             </div>
             <div className="flex-grow">
                 <GroupDialog open={groupsOpen} onClose={() => setGroupsOpen(false)} />
+                <input type={"checkbox"} className={"toggle toggle-accent"} checked={sidebarVisible} onChange={(e) => setSidebarVisible(e.target.checked)} />
                 <div className={"flex flex-row"}>
-                    <div className={"flex flex-col"}>
+                    <div className={`flex flex-col ${!sidebarVisible && 'hidden'}`}>
                         <ContentDrawer />
                         <details className={"dropdown"}>
                             <summary className={"m-1 btn"}>new</summary>

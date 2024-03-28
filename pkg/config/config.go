@@ -8,6 +8,7 @@ import (
 	"github.com/justshare-io/justshare/pkg/kubes"
 	"github.com/justshare-io/justshare/pkg/log"
 	"github.com/justshare-io/justshare/pkg/providers/openai"
+	"github.com/justshare-io/justshare/pkg/providers/signal"
 	"github.com/justshare-io/justshare/pkg/providers/whisper"
 	"github.com/justshare-io/justshare/pkg/scrape"
 	"github.com/justshare-io/justshare/pkg/user"
@@ -34,6 +35,7 @@ type Config struct {
 	Event   event.Config   `yaml:"event"`
 	Kubes   kubes.Config   `yaml:"kubes"`
 	Log     log.Config     `yaml:"log"`
+	Signal  signal.Config  `yaml:"signal"`
 }
 
 func newDefaultConfig() Config {
@@ -50,6 +52,7 @@ func newDefaultConfig() Config {
 		Event:   event.DefaultConfig(),
 		Kubes:   kubes.NewDefaultConfig(),
 		Log:     log.NewDefaultConfig(),
+		Signal:  signal.NewDefaultConfig(),
 	}
 }
 

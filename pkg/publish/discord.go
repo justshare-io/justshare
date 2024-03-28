@@ -2,9 +2,9 @@ package publish
 
 import (
 	"github.com/google/uuid"
-	"github.com/justshare-io/justshare/pkg/chat/discord"
 	"github.com/justshare-io/justshare/pkg/db"
 	"github.com/justshare-io/justshare/pkg/db/model"
+	"github.com/justshare-io/justshare/pkg/providers/discord"
 	"log/slog"
 )
 

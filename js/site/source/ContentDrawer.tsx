@@ -104,7 +104,7 @@ const ContentTable: React.FC<{displayContent: DisplayContent[]}> = ({displayCont
         }
     }
     return (
-        <div className={"h-96 carousel carousel-vertical rounded-box"}>
+        <div className={"h-96 carousel rounded-box"}>
             {displayContent.filter(notEmpty).map((item, index) => (
                 <div key={index} className={"carousel-item h-full"}>
                     <div className={`flex flex-col p-4 w-96 bg-base-200 text-base-content ${selectedContent?.id === item.content?.id ? 'bg-accent' : ''}`}

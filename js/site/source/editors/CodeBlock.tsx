@@ -1,45 +1,58 @@
 import {
+    createBlockSpecFromStronglyTypedTiptapNode,
+    createStronglyTypedTiptapNode,
     defaultBlockSchema,
     defaultBlockSpecs,
     defaultProps,
 } from "@blocknote/core";
-import {createReactBlockSpec, ReactSlashMenuItem} from "@blocknote/react";
+import {createReactBlockSpec} from "@blocknote/react";
 import React from "react";
 import {RiText} from "react-icons/ri";
-import {TemplatePlayground} from "@/components/TemplatePlayground";
+import {backtickInputRegex, tildeInputRegex} from "@tiptap/extension-code-block";
+import {mergeAttributes, textblockTypeInputRule} from "@tiptap/core";
+import {LowlightPlugin} from "@/source/editors/lowlight-plugin";
+import css from 'highlight.js/lib/languages/css'
+import js from 'highlight.js/lib/languages/javascript'
+import ts from 'highlight.js/lib/languages/typescript'
+import html from 'highlight.js/lib/languages/xml'
+import go from 'highlight.js/lib/languages/go'
+import {createLowlight} from 'lowlight'
 
-export const CodeBlock = createReactBlockSpec(
-    {
-        type: "codeBlock",
-        propSchema: {
-            ...defaultProps,
-            code: {
-                default: "<h1>Hello, World!</h1>",
-            },
-        },
-        content: "inline",
+const lowlight = createLowlight();
+
+lowlight.register({html})
+lowlight.register({css})
+lowlight.register({js})
+lowlight.register({ts})
+lowlight.register({go})
+
+const languageClassPrefix = 'language-';
+
+const CodeBlockContent = createStronglyTypedTiptapNode({
+    name: 'codeBlock',
+
+    addOptions() {
+        return {
+            ...this.parent?.(),
+            lowlight: lowlight,
+        }
     },
-    {
-        render: ({ block, contentRef }) => {
-            return (
-                <div id={"template-playground"}>
-                    <TemplatePlayground ref={contentRef} />
-                </div>
-            );
-        },
-        toExternalHTML: ({ contentRef }) => <div ref={contentRef} />,
-        parse: (element) => {
-            const code = element.textContent;
-
-            if (code === "") {
-                return;
-            }
-
-            return {
-                code: code || undefined,
-            };
-        },
+    content: 'inline*',
+    addProseMirrorPlugins() {
+        return [
+        ...this.parent?.() || [],
+            LowlightPlugin({
+                name: this.name,
+                lowlight: this.options.lowlight,
+                defaultLanguage: this.options.defaultLanguage,
+            }),
+        ];
     }
+});
+
+export const CodeBlock = createBlockSpecFromStronglyTypedTiptapNode(
+    CodeBlockContent,
+    defaultProps,
 );
 
 // blockquote block

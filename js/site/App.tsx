@@ -9,26 +9,22 @@ import {ChatPage} from "@/chat/ChatPage";
 import {VerifyPage} from "@/auth/VerifyPage";
 import {Provider} from "jotai";
 import {Admin} from "@/admin/Admin";
+import {TemplatePlayground} from "@/components/TemplatePlayground";
 
 const AppRoutes = () => {
     const commonRoutes = [{
         path: '/app',
-        element: (
-            <div className="h-screen flex flex-col gap-4 w-full">
-                <div className="mt-4">
-                    <div className="items-center px-5 py-12 lg:px-20">
-                        <div className="flex flex-col w-full max-w-md p-10 mx-auto space-y-4">
-                            <p>oh, hello.</p>
-                            <a href={"/app/content"} className={"btn"}>let's go write something.</a>
-                            {/*<a href={"/app/chat"} className={"btn"}>chat</a>*/}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
+        element: <Home />
     }, {
         path: '/app/content',
         element: <Home />
+    }, {
+        path: '/app/web',
+        element: (
+            <div className={"p-5"}>
+                <TemplatePlayground />
+            </div>
+        ),
     }, {
         path: '/app/group/:groupID',
         element: <Home />

@@ -10,9 +10,12 @@ import (
 	"github.com/justshare-io/justshare/pkg/gen/chat"
 	"github.com/justshare-io/justshare/pkg/gen/chat/chatconnect"
 	"github.com/justshare-io/justshare/pkg/http"
+	"github.com/justshare-io/justshare/pkg/providers/discord"
+	"github.com/justshare-io/justshare/pkg/providers/signal"
 	"github.com/justshare-io/justshare/pkg/user"
 	"github.com/pkg/errors"
 	"io"
+	"log/slog"
 	"math/rand"
 	"sync"
 	"time"
@@ -21,6 +24,8 @@ import (
 type Service struct {
 	sess        *http.SessionManager
 	user        *user.EntStore
+	discord     *discord.Session
+	signal      *signal.Signal
 	chat        chan *chat.Message
 	subscribers map[chan<- *chat.Message]struct{}
 	mu          sync.Mutex
@@ -29,16 +34,21 @@ type Service struct {
 
 var ProviderSet = wire.NewSet(
 	New,
+	signal.ProviderSet,
 )
 
 func New(
 	sess *http.SessionManager,
 	user *user.EntStore,
+	discord *discord.Session,
+	signal *signal.Signal,
 ) *Service {
 	c := make(chan *chat.Message)
 	return &Service{
 		sess:        sess,
 		user:        user,
+		discord:     discord,
+		signal:      signal,
 		chat:        c,
 		subscribers: make(map[chan<- *chat.Message]struct{}),
 		memUser:     memoizeUsername(),
@@ -46,6 +56,43 @@ func New(
 }
 
 var _ chatconnect.ChatServiceHandler = (*Service)(nil)
+
+func (s *Service) Connect() {
+	s.connectDiscord()
+	//s.connectSignal()
+}
+
+func (s *Service) connectSignal() {
+	go func() {
+		for {
+			err := s.signal.Receive()
+			if err != nil {
+				slog.Error("failed to receive signal message", "error", err)
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}()
+}
+
+func (s *Service) connectDiscord() {
+	if s.discord == nil {
+		slog.Warn("discord is not enabled for chat.Service")
+		return
+	}
+	ch := s.discord.Messages.Subscribe("justshare")
+	go func() {
+		for {
+			select {
+			case msg := <-ch:
+				s.broadcastMessage(&chat.Message{
+					User:      msg.Author.Username,
+					Text:      msg.Content,
+					Timestamp: msg.Timestamp.Unix(),
+				})
+			}
+		}
+	}()
+}
 
 func (s *Service) addSubscriber(ch chan<- *chat.Message) {
 	s.mu.Lock()

@@ -19,7 +19,9 @@ import (
 	"github.com/justshare-io/justshare/pkg/http"
 	"github.com/justshare-io/justshare/pkg/kubes"
 	"github.com/justshare-io/justshare/pkg/log"
+	"github.com/justshare-io/justshare/pkg/providers/discord"
 	"github.com/justshare-io/justshare/pkg/providers/openai"
+	"github.com/justshare-io/justshare/pkg/providers/signal"
 	"github.com/justshare-io/justshare/pkg/providers/whisper"
 	"github.com/justshare-io/justshare/pkg/server"
 	"github.com/justshare-io/justshare/pkg/user"
@@ -89,7 +91,24 @@ func Wire() (*cli.App, error) {
 		return nil, err
 	}
 	userService := user.NewService(groupEntStore, sessionManager, userEntStore, userConfig)
-	chatService := chat.New(sessionManager, userEntStore)
+	discordConfig, err := discord.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	session, err := discord.NewDiscordSession(discordConfig)
+	if err != nil {
+		return nil, err
+	}
+	discordSession, err := discord.NewSession(discordConfig, session)
+	if err != nil {
+		return nil, err
+	}
+	signalConfig, err := signal.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	signalSignal := signal.New(signalConfig)
+	chatService := chat.New(sessionManager, userEntStore, discordSession, signalSignal)
 	eventEntStore := event.NewEntStore(client)
 	eventConfig, err := event.NewConfig(provider)
 	if err != nil {
@@ -105,6 +124,6 @@ func Wire() (*cli.App, error) {
 		return nil, err
 	}
 	apihttpServer := server.New(contentConfig, service, builder, sessionManager, userService, chatService, eventService, kubesService)
-	app := NewApp(logLog, apihttpServer)
+	app := NewApp(logLog, apihttpServer, discordSession)
 	return app, nil
 }

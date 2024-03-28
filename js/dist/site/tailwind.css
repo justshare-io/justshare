@@ -915,12 +915,6 @@ html {
   }
 }
 
-.avatar.\!placeholder > div {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
 .avatar.placeholder > div {
   display: flex;
   align-items: center;
@@ -1179,6 +1173,21 @@ html {
   scroll-behavior: smooth;
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.carousel-item {
+  box-sizing: content-box;
+  display: flex;
+  flex: none;
+  scroll-snap-align: start;
+}
+
+.carousel-center .carousel-item {
+  scroll-snap-align: center;
+}
+
+.carousel-end .carousel-item {
+  scroll-snap-align: end;
 }
 
 .chat {
@@ -4602,6 +4611,21 @@ details.collapse summary::-webkit-details-marker {
         0 0 0 2px var(--tglbg) inset;
 }
 
+.toggle-accent:focus-visible {
+  outline-color: var(--fallback-a,oklch(var(--a)/1));
+}
+
+.toggle-accent:checked,
+    .toggle-accent[checked="true"],
+    .toggle-accent[aria-checked="true"] {
+  border-color: var(--fallback-a,oklch(var(--a)/var(--tw-border-opacity)));
+  --tw-border-opacity: 0.1;
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-a,oklch(var(--a)/var(--tw-bg-opacity)));
+  --tw-text-opacity: 1;
+  color: var(--fallback-ac,oklch(var(--ac)/var(--tw-text-opacity)));
+}
+
 .\!toggle:disabled {
   cursor: not-allowed !important;
   --tw-border-opacity: 1 !important;
@@ -5647,11 +5671,6 @@ details.collapse summary::-webkit-details-marker {
   margin-right: 0.25rem;
 }
 
-.mx-16 {
-  margin-left: 4rem;
-  margin-right: 4rem;
-}
-
 .mx-\[3vw\] {
   margin-left: 3vw;
   margin-right: 3vw;
@@ -5755,16 +5774,16 @@ details.collapse summary::-webkit-details-marker {
   height: 0.75rem;
 }
 
+.h-32 {
+  height: 8rem;
+}
+
 .h-5 {
   height: 1.25rem;
 }
 
 .h-6 {
   height: 1.5rem;
-}
-
-.h-72 {
-  height: 18rem;
 }
 
 .h-96 {
@@ -5777,6 +5796,10 @@ details.collapse summary::-webkit-details-marker {
 
 .h-\[95vh\] {
   height: 95vh;
+}
+
+.h-full {
+  height: 100%;
 }
 
 .h-screen {
@@ -5813,10 +5836,6 @@ details.collapse summary::-webkit-details-marker {
 
 .w-52 {
   width: 13rem;
-}
-
-.w-56 {
-  width: 14rem;
 }
 
 .w-6 {
@@ -6287,6 +6306,11 @@ details.collapse summary::-webkit-details-marker {
   text-align: justify;
 }
 
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
@@ -6614,6 +6638,14 @@ details.collapse summary::-webkit-details-marker {
   .lg\:mx-\[6vw\] {
     margin-left: 6vw;
     margin-right: 6vw;
+  }
+
+  .lg\:flex {
+    display: flex;
+  }
+
+  .lg\:flex-row {
+    flex-direction: row;
   }
 
   .lg\:px-20 {

@@ -9,9 +9,37 @@ const Format = {
     JSON: 'JSON',
 };
 
+const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.9.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div class="container mx-auto w-96 mt-8">
+        <a class="btn btn-primary" href="https://daisyui.com/components/">learn daisyui</a>
+        <h1 class="text-3xl font-bold underline">
+            <a href="https://tailwindcomponents.com/cheatsheet/">learn tailwind</a>
+        </h1>
+        {{ range .Chat }}
+        <div class="chat {{ .Class }}">
+            <div class="chat-bubble">{{ .Msg }}</div>
+        </div>
+        {{end}}
+</body>
+</html>
+`
+
 const Defaults = {
-    template: 'Hello, {{ .Name }}!',
-    data: 'Name: World',
+    template: html,
+    data: `Chat:
+- Msg: what did react say to vue?
+  Class: chat-start
+- Msg: "Want to go to the spa?"
+  Class: chat-end`,
     dataFormat: Format.YAML,
     enableSprig: true,
     autoRender: true,
@@ -118,7 +146,7 @@ export const TemplatePlayground = React.forwardRef(( props, ref ) => {
             <div className={"col-span-2"}>
                 <Editor
                     height="60vh"
-                    defaultLanguage="javascript"
+                    defaultLanguage="html"
                     defaultValue={state.template}
                     onMount={(editor) => {
                         editorRef.current = editor;
@@ -129,7 +157,7 @@ export const TemplatePlayground = React.forwardRef(( props, ref ) => {
                         }
                     }}
                 />
-                <div className="form-group">
+                <div className="form-group h-32">
                     <div className="form-inline">
                         <label>Data</label>
                         <label className="sr-only">
@@ -148,23 +176,28 @@ export const TemplatePlayground = React.forwardRef(( props, ref ) => {
                             ))}
                         </select>
                     </div>
-                    <textarea
-                        className="form-control mono"
-                        id="dataTextArea"
-                        value={state.data}
-                        onInput={updateData}
+                    <Editor
+                        height="30vh"
+                        defaultLanguage="yaml"
+                        defaultValue={state.data}
+                        onMount={(editor) => {
+                            editorRef.current = editor;
+                        }}
+                        onChange={(value, event) => {
+                            if (value) {
+                                setState((prevState) => ({...prevState, data: value}));
+                            }
+                        }}
                     />
                 </div>
             </div>
             <div className={"col-span-2"}>
-                <div className="form-group">
+                <div className="form-group h-full">
                     <label>Rendered</label>
                     <iframe
                         title="Example Iframe"
                         srcDoc={htmlContent}
-                        width="100%"
-                        height="300px"
-                        style={{ border: '2px solid #ccc' }}
+                        className={"w-full h-full"}
                     />
                 </div>
             </div>

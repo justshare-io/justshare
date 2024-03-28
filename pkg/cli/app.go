@@ -3,9 +3,12 @@ package cli
 import (
 	"github.com/ergochat/ergo/irc"
 	"github.com/ergochat/ergo/irc/logger"
+	"github.com/google/wire"
 	"github.com/justshare-io/justshare/pkg/log"
+	"github.com/justshare-io/justshare/pkg/providers/discord"
 	"github.com/justshare-io/justshare/pkg/server"
 	"github.com/urfave/cli/v2"
+	"log/slog"
 	"os"
 )
 
@@ -14,10 +17,16 @@ type Commands struct {
 	Sync  *cli.Command
 }
 
+var ProviderSet = wire.NewSet(
+	NewApp,
+	discord.ProviderSet,
+)
+
 func NewApp(
 	// TODO breadchris needed so wire will pick it up as a dep
 	log *log.Log,
 	apiServer *server.APIHTTPServer,
+	discord *discord.Session,
 ) *cli.App {
 	return &cli.App{
 		Name:   "justshare",
@@ -26,6 +35,19 @@ func NewApp(
 		Commands: []*cli.Command{
 			NewServeCommand(apiServer),
 			NewDockerCommand(),
+			{
+				Name:  "discord",
+				Flags: []cli.Flag{},
+				Action: func(c *cli.Context) error {
+					mc := discord.Messages.Subscribe("justshare")
+					for {
+						select {
+						case msg := <-mc:
+							slog.Debug("discord message", "msg", msg)
+						}
+					}
+				},
+			},
 			{
 				Name: "irc",
 				Flags: []cli.Flag{
