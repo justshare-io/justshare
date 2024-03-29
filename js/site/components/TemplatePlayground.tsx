@@ -20,10 +20,13 @@ const html = `
 </head>
 <body>
     <div class="container mx-auto w-96 mt-8">
-        <a class="btn btn-primary" href="https://daisyui.com/components/">learn daisyui</a>
-        <h1 class="text-3xl font-bold underline">
-            <a href="https://tailwindcomponents.com/cheatsheet/">learn tailwind</a>
-        </h1>
+        <div class="my-3">
+            <a class="btn" href="https://pkg.go.dev/html/template@go1.22.1">learn go templates</a>
+            <a class="btn btn-primary" href="https://daisyui.com/components/">learn daisyui</a>
+            <h1 class="text-3xl font-bold underline">
+                <a href="https://tailwindcomponents.com/cheatsheet/">learn tailwind</a>
+            </h1>
+        </div>
         {{ range .Chat }}
         <div class="chat {{ .Class }}">
             <div class="chat-bubble">{{ .Msg }}</div>

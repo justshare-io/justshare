@@ -1262,6 +1262,11 @@ export class Page extends Message<Page> {
    */
   html = "";
 
+  /**
+   * @generated from field: string data = 2;
+   */
+  data = "";
+
   constructor(data?: PartialMessage<Page>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1271,6 +1276,7 @@ export class Page extends Message<Page> {
   static readonly typeName = "content.Page";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "html", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "data", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Page {

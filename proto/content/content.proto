@@ -189,6 +189,7 @@ message Content {
 
 message Page {
   string html = 1;
+  string data = 2;
 }
 
 message FileUploadResponse {

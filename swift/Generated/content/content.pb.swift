@@ -681,6 +681,8 @@ public struct Content_Page {
 
   public var html: String = String()
 
+  public var data: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -2257,7 +2259,15 @@ extension Content_StoredContent: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     var _tags: [Content_Tag] = []
     var _preview: String = String()
 
-    static let defaultInstance = _StorageClass()
+    #if swift(>=5.10)
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+    #else
+      static let defaultInstance = _StorageClass()
+    #endif
 
     private init() {}
 
@@ -2632,6 +2642,7 @@ extension Content_Page: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
   public static let protoMessageName: String = _protobuf_package + ".Page"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "html"),
+    2: .same(proto: "data"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2641,6 +2652,7 @@ extension Content_Page: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.html) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.data) }()
       default: break
       }
     }
@@ -2650,11 +2662,15 @@ extension Content_Page: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     if !self.html.isEmpty {
       try visitor.visitSingularStringField(value: self.html, fieldNumber: 1)
     }
+    if !self.data.isEmpty {
+      try visitor.visitSingularStringField(value: self.data, fieldNumber: 2)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Content_Page, rhs: Content_Page) -> Bool {
     if lhs.html != rhs.html {return false}
+    if lhs.data != rhs.data {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

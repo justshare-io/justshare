@@ -57,3 +57,23 @@ jobs:
           docker push $SERVER_IMAGE_ID:$VERSION
 
           yq -i e ".services.justshare.image |= \"$(docker inspect --format='{{index .RepoDigests 0}}' $SERVER_IMAGE_ID:$VERSION)\"" docker-compose.prod.yaml
+          
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          version: 'latest'
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker
+
+      - name: Get Kubernetes credentials
+        run: |
+          gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Deploy to Kubernetes
+        run: |
+          
