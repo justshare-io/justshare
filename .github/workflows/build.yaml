@@ -59,7 +59,7 @@ jobs:
           yq -i e ".services.justshare.image |= \"$(docker inspect --format='{{index .RepoDigests 0}}' $SERVER_IMAGE_ID:$VERSION)\"" docker-compose.prod.yaml
           
       - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@main
         with:
           version: 'latest'
           project_id: ${{ secrets.GCP_PROJECT_ID }}
