@@ -1,8 +1,15 @@
 /* global Go, ExpRenderGoTemplate, ExpConvertData */
 
 import React, {useState, useEffect, useRef} from 'react';
-import {Editor} from "@monaco-editor/react";
+import {Editor, useMonaco} from "@monaco-editor/react";
 import { editor } from 'monaco-editor';
+import {contentService} from "@/service";
+import toast from "react-hot-toast";
+import {Content, Contents, Page, StoredContent} from "@/rpc/content/content_pb";
+import {useParams} from "react-router";
+import {Modal} from "@/components/modal";
+import {AuthForm} from "@/auth/AuthForm";
+import {useAuth} from "@/auth/state";
 
 const Format = {
     YAML: 'YAML',
@@ -37,22 +44,29 @@ const html = `
 `
 
 const Defaults = {
-    template: html,
-    data: `Chat:
+    content: new Content({
+        type: {
+            case: 'page',
+            value: new Page({}),
+        },
+    }),
+    page: new Page({
+        html: html,
+        data: `Chat:
 - Msg: what did react say to vue?
   Class: chat-start
 - Msg: "Want to go to the spa?"
-  Class: chat-end`,
+  Class: chat-end
+`
+    }),
     dataFormat: Format.YAML,
-    enableSprig: true,
-    autoRender: true,
 };
 
 export const TemplatePlayground = React.forwardRef(( props, ref ) => {
     // TODO breadchris make configurable
     const wasm = "/app/go.wasm";
-
-    const editorRef = useRef<editor.IStandaloneCodeEditor|null>(null);
+    const { user} = useAuth();
+    const [authModal, setAuthModal] = useState(false);
 
     const [state, setState] = useState({
         ...Defaults,
@@ -60,6 +74,38 @@ export const TemplatePlayground = React.forwardRef(( props, ref ) => {
         error: null,
         rendered: '',
     });
+
+    const { id } = useParams();
+
+    useEffect(() => {
+        if (!id) {
+            return;
+        }
+        (async () => {
+            try {
+                const res = await contentService.search({
+                    contentID: id,
+                })
+                if (res.storedContent.length === 0) {
+                    return;
+                }
+                const c = res.storedContent[0].content;
+                if (c !== undefined && c.type.case === 'page' && c.type.value !== undefined) {
+                    const html = c.type.value.html;
+                    const data = c.type.value.data;
+                    setState((prevState) => ({
+                        ...prevState,
+                        page: new Page({html, data}),
+                        content: c,
+                    }));
+                }
+            } catch (e) {
+                console.error('failed to get sources', e);
+            }
+        })();
+    }, [id]);
+
+    const editorRef = useRef<editor.IStandaloneCodeEditor|null>(null);
 
     useEffect(() => {
         // Placeholder for WebAssembly initialization logic
@@ -85,10 +131,34 @@ export const TemplatePlayground = React.forwardRef(( props, ref ) => {
     }, [state.loading]);
 
     useEffect(() => {
-        if (!state.loading && state.autoRender) {
+        if (!state.loading) {
             updateRendered();
         }
-    }, [state.template, state.data, state.dataFormat, state.autoRender, state.enableSprig]);
+    }, [state.page, state.dataFormat]);
+
+    const share = async () => {
+        await navigator.clipboard.writeText(`https://justshare.io/@demo/${state.content.id}`);
+        toast.success("Copied to clipboard");
+    }
+
+    const save = async () => {
+        if (!user) {
+            setAuthModal(true);
+            return;
+        }
+        try {
+            state.content.type.value = state.page;
+            const res = await contentService.save(new Contents({
+                content: state.content,
+            }));
+            toast.success("Saved");
+
+            window.history.pushState({}, '', `/app/web/${res.content?.id}`);
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to save content: " + error);
+        }
+    }
 
     const updateTemplate = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setState((prevState) => ({ ...prevState, template: e.target.value }));
@@ -104,20 +174,8 @@ export const TemplatePlayground = React.forwardRef(( props, ref ) => {
 
     const updateRendered = () => {
         //@ts-ignore
-        const rendered = ExpRenderGoTemplate(state.template, state.data, state.dataFormat, state.enableSprig);
+        const rendered = ExpRenderGoTemplate(state.page.html, state.page.data, state.dataFormat, false);
         setState((prevState) => ({ ...prevState, rendered }));
-    };
-
-    const toggleAutoRender = () => {
-        setState((prevState) => ({ ...prevState, autoRender: !prevState.autoRender }));
-    };
-
-    const setDefaults = () => {
-        setState({ ...Defaults, loading: false, error: null, rendered: '' });
-    };
-
-    const toggleEnableSprig = () => {
-        setState((prevState) => ({ ...prevState, enableSprig: !prevState.enableSprig }));
     };
 
     if (state.loading) {
@@ -145,63 +203,96 @@ export const TemplatePlayground = React.forwardRef(( props, ref ) => {
   `;
 
     return (
-        <div ref={ref} className="grid grid-cols-4 gap-4">
-            <div className={"col-span-2"}>
-                <Editor
-                    height="60vh"
-                    defaultLanguage="html"
-                    defaultValue={state.template}
-                    onMount={(editor) => {
-                        editorRef.current = editor;
-                    }}
-                    onChange={(value, event) => {
-                        if (value) {
-                            setState((prevState) => ({...prevState, template: value}));
-                        }
-                    }}
-                />
-                <div className="form-group h-32">
-                    <div className="form-inline">
-                        <label>Data</label>
-                        <label className="sr-only">
-                            Format
-                        </label>
-                        <select
-                            className="custom-select custom-select-sm ml-2 mb-1"
-                            id="dataFormat"
-                            value={state.dataFormat}
-                            onChange={updateDataFormat}
-                        >
-                            {Object.keys(Format).map((v) => (
-                                <option key={v} value={v}>
-                                    {v}
-                                </option>
-                            ))}
-                        </select>
+        <div>
+            <div className="navbar bg-base-100">
+                <div className={"flex-1"}>
+                    <a className="btn btn-ghost text-xl">JustShare</a>
+                </div>
+                <div className="flex-none gap-2">
+                    <div className={"flex flex-row justify-end my-2 space-x-2"}>
+                        <button className={"btn w-fit"} onClick={save}>save</button>
+                        <button className={"btn w-fit"} onClick={share}>share</button>
                     </div>
+                    <Modal open={authModal} onClose={() => setAuthModal(false)}>
+                        <AuthForm allowRegister={true} next={'/app/chat'} />
+                    </Modal>
+                    <div className="dropdown dropdown-end">
+                        <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
+                            <div className="w-10 rounded-full">
+                                <img alt="Tailwind CSS Navbar component" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+                            </div>
+                        </div>
+                        <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+                            <li>
+                                <a className="justify-between">
+                                    Profile
+                                    <span className="badge">New</span>
+                                </a>
+                            </li>
+                            <li><a>Settings</a></li>
+                            <li><a>Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div ref={ref} className="grid grid-cols-4 gap-4">
+                <div className={"col-span-2 flex flex-col"}>
                     <Editor
-                        height="30vh"
-                        defaultLanguage="yaml"
-                        defaultValue={state.data}
-                        onMount={(editor) => {
+                        height="60vh"
+                        defaultLanguage="html"
+                        defaultValue={state.page.html}
+                        onMount={(editor, monaco) => {
                             editorRef.current = editor;
                         }}
                         onChange={(value, event) => {
                             if (value) {
-                                setState((prevState) => ({...prevState, data: value}));
+                                setState((prevState) => ({...prevState, template: value}));
                             }
                         }}
                     />
+                    <div className="form-group h-32">
+                        <div className="form-inline">
+                            <label>Data</label>
+                            <label className="sr-only">
+                                Format
+                            </label>
+                            <select
+                                className="custom-select custom-select-sm ml-2 mb-1"
+                                id="dataFormat"
+                                value={state.dataFormat}
+                                onChange={updateDataFormat}
+                            >
+                                {Object.keys(Format).map((v) => (
+                                    <option key={v} value={v}>
+                                        {v}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <Editor
+                            height="30vh"
+                            defaultLanguage="yaml"
+                            defaultValue={state.page.data}
+                            onMount={(editor) => {
+                                editorRef.current = editor;
+                            }}
+                            onChange={(value, event) => {
+                                if (value) {
+                                    setState((prevState) => ({...prevState, data: value}));
+                                }
+                            }}
+                        />
+                    </div>
                 </div>
-            </div>
-            <div className={"col-span-2"}>
-                <div className="form-group h-full">
-                    <label>Rendered</label>
-                    <iframe
-                        title="Example Iframe"
-                        srcDoc={htmlContent}
-                        className={"w-full h-full"}
-                    />
+                <div className={"col-span-2"}>
+                    <div className="form-group h-full">
+                        <label>Rendered</label>
+                        <iframe
+                            title="Example Iframe"
+                            srcDoc={htmlContent}
+                            className={"w-full h-full"}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

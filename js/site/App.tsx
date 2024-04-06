@@ -26,6 +26,13 @@ const AppRoutes = () => {
             </div>
         ),
     }, {
+        path: '/app/web/:id',
+        element: (
+            <div className={"p-5"}>
+                <TemplatePlayground />
+            </div>
+        ),
+    }, {
         path: '/app/group/:groupID',
         element: <Home />
     }, {

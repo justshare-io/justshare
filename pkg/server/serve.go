@@ -15,6 +15,7 @@ import (
 	"github.com/justshare-io/justshare/pkg/content/normalize"
 	"github.com/justshare-io/justshare/pkg/event"
 	"github.com/justshare-io/justshare/pkg/gen/chat/chatconnect"
+	pcontent "github.com/justshare-io/justshare/pkg/gen/content"
 	"github.com/justshare-io/justshare/pkg/gen/content/contentconnect"
 	"github.com/justshare-io/justshare/pkg/gen/event/eventconnect"
 	"github.com/justshare-io/justshare/pkg/gen/kubes/kubesconnect"
@@ -29,6 +30,8 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
+	"gopkg.in/yaml.v3"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"net/http/httputil"
@@ -177,8 +180,8 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 	mediaFileServer := http.FileServer(f)
 
 	// TODO breadchris brittle path
-	blog := http.FS(os.DirFS("data/blog"))
-	blogFileServer := http.FileServer(blog)
+	//blog := http.FS(os.DirFS("data/blog"))
+	//blogFileServer := http.FileServer(blog)
 
 	u, err := url.Parse(a.config.Proxy)
 	if err != nil {
@@ -203,8 +206,50 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 	// TODO breadchris path routing should be done in a more modular way, as opposed to being done all in the handler
 	muxRoot.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/@") {
-			_ = strings.Replace(r.URL.Path, "/@", "", 1)
-			blogFileServer.ServeHTTP(w, r)
+			//blogFileServer.ServeHTTP(w, r)
+			ul := strings.Replace(r.URL.Path, "/@", "", 1)
+			parts := strings.Split(ul, "/")
+			if len(parts) != 2 {
+				http.NotFound(w, r)
+				return
+			}
+			res, err := a.contentService.Search(r.Context(), connect.NewRequest(&pcontent.Query{
+				ContentID: parts[1],
+			}))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			if len(res.Msg.StoredContent) != 1 {
+				http.NotFound(w, r)
+				return
+			}
+			sc := res.Msg.StoredContent[0]
+			switch t := sc.Content.Type.(type) {
+			case *pcontent.Content_Page:
+				// t.Page.Html is a go template
+				tmpl, err := template.New("page").Parse(t.Page.Html)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// parse t.Page.Data, which is yaml
+				data := map[string]any{}
+				err = yaml.Unmarshal([]byte(t.Page.Data), data)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				err = tmpl.Execute(w, data)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			default:
+				http.NotFound(w, r)
+			}
 			return
 		}
 

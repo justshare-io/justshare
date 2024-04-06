@@ -12,64 +12,64 @@ export const AuthForm: React.FC<{ next?: string, allowRegister?: boolean }> = ({
 
     const iframeRef = useRef(null);
     return (
-            <div className={"h-full"}>
-                <div className="mt-4">
-                    <div className="items-center px-5 py-12 lg:px-20">
-                        <div className="flex flex-col w-full max-w-md p-10 mx-auto">
-                            <a className={"btn"} href={`/auth/google${next ? '?next='+next : ''}`}>login with google</a>
-                            <div className={"divider"}>or</div>
-                            <div className="tabs tabs-lifted">
-                                <a className={`tab ${selectedTab === 'login' ? 'tab-active' : ''}`}
-                                   onClick={() => setSelectedTab('login')}>
-                                    login
+        <div className={"h-full"}>
+            <div className="mt-4">
+                <div className="items-center px-5 py-12 lg:px-20">
+                    <div className="flex flex-col w-full max-w-md p-10 mx-auto">
+                        <a className={"btn"} href={`/auth/google${next ? '?next='+next : ''}`}>login with google</a>
+                        <div className={"divider"}>or</div>
+                        <div className="tabs tabs-lifted">
+                            <a className={`tab ${selectedTab === 'login' ? 'tab-active' : ''}`}
+                               onClick={() => setSelectedTab('login')}>
+                                login
+                            </a>
+                            {allowRegister && (
+                                <a className={`tab ${selectedTab === 'register' ? 'tab-active' : ''}`}
+                                   onClick={() => setSelectedTab('register')}>
+                                    register
                                 </a>
-                                {allowRegister && (
-                                    <a className={`tab ${selectedTab === 'register' ? 'tab-active' : ''}`}
-                                       onClick={() => setSelectedTab('register')}>
-                                        register
-                                    </a>
-                                )}
-                            </div>
-                            <div className={"space-y-2 w-full mx-auto my-6"}>
-                                {selectedTab === 'register' && (
-                                    <input
-                                        className="input input-bordered w-full"
-                                        type="text"
-                                        placeholder="username"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                    />
-                                )}
-                                <input
-                                    className="input input-bordered w-full"
-                                    type="email"
-                                    placeholder="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                                <input
-                                    className="input input-bordered w-full"
-                                    type="password"
-                                    placeholder="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                />
-                            </div>
-                            <button
-                                className="btn btn-primary"
-                                onClick={() => {
-                                    if (selectedTab === 'login') {
-                                        void login(email, password);
-                                    } else {
-                                        void register(email, password);
-                                    }
-                                }}
-                            >
-                                {selectedTab === 'login' ? 'login' : 'register'}
-                            </button>
+                            )}
                         </div>
+                        <div className={"space-y-2 w-full mx-auto my-6"}>
+                            {selectedTab === 'register' && (
+                                <input
+                                    className="input input-bordered w-full"
+                                    type="text"
+                                    placeholder="username"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                />
+                            )}
+                            <input
+                                className="input input-bordered w-full"
+                                type="email"
+                                placeholder="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                            <input
+                                className="input input-bordered w-full"
+                                type="password"
+                                placeholder="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => {
+                                if (selectedTab === 'login') {
+                                    void login(email, password);
+                                } else {
+                                    void register(email, password);
+                                }
+                            }}
+                        >
+                            {selectedTab === 'login' ? 'login' : 'register'}
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
     );
 };

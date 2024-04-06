@@ -75,5 +75,4 @@ jobs:
           gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Deploy to Kubernetes
-        run: |
-          
+        run: echo "TODO breadchris deploy to k8s via go command"

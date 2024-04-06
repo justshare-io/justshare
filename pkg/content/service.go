@@ -430,6 +430,10 @@ func (s *Service) Save(ctx context.Context, c *connect_go.Request[content.Conten
 		return nil, err
 	}
 
+	if c.Msg.Content == nil {
+		return nil, errors.New("content is nil")
+	}
+
 	if c.Msg.Content.Id == "" {
 		c.Msg.Content.Id = uuid.New().String()
 	}
