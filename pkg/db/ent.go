@@ -4,14 +4,16 @@ import (
 	"context"
 	"github.com/benbjohnson/litestream"
 	lsgcs "github.com/benbjohnson/litestream/gcs"
+	"github.com/justshare-io/justshare/pkg/bucket"
 	"github.com/justshare-io/justshare/pkg/ent"
 	"github.com/justshare-io/justshare/pkg/ent/migrate"
+	"github.com/pkg/errors"
 	"log/slog"
 	"os"
 	"path"
 )
 
-func NewEnt(c Config) (*ent.Client, error) {
+func NewEnt(c Config, bc bucket.Config) (*ent.Client, error) {
 	logFn := func(params ...any) {
 		slog.Debug("ent", params)
 	}
@@ -31,10 +33,11 @@ func NewEnt(c Config) (*ent.Client, error) {
 		if err := lsdb.Open(); err != nil {
 			return nil, err
 		}
-		replica := newReplica(c, lsdb)
+		replica := newReplica(c, bc, lsdb)
 		lsdb.Replicas = append(lsdb.Replicas, replica)
 		if err := restore(context.Background(), replica); err != nil {
-			return nil, err
+			// TODO breadchris this will change
+			return nil, errors.Wrapf(err, "failed to restore replica: %s/%s %s", bc.Url.Host, c.BackupName, c.DSN)
 		}
 	}
 
@@ -91,10 +94,10 @@ func replicateDBHook(next ent.Mutator, lsdb *litestream.DB) ent.Mutator {
 	})
 }
 
-func newReplica(c Config, lsdb *litestream.DB) *litestream.Replica {
+func newReplica(c Config, bc bucket.Config, lsdb *litestream.DB) *litestream.Replica {
 	// TODO breadchris support gcs https://litestream.io/guides/gcs/
 	rc := lsgcs.NewReplicaClient()
-	rc.Bucket = c.Bucket
+	rc.Bucket = bc.Url.Host
 	rc.Path = c.BackupName
 
 	//client := lss3.NewReplicaClient()

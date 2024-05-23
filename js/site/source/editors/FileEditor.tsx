@@ -6,12 +6,14 @@ import {FileDrop} from "@/file/FileDrop";
 import {TranscriptViewer} from "@/source/editors/TranscriptEditor";
 import { ReactReader } from 'react-reader'
 import type { Contents, Rendition } from 'epubjs'
+import {useContentEditor} from "@/source/state";
 
 
 export const FileEditor: React.FC<{id: string, file: File, onChange: (file: File) => void}> = ({id, file, onChange}) => {
     const [relatedContent, setRelatedContent] = useState<string[]>([]);
     const [transcripts, setTranscripts] = useState<Transcript[]>([]);
     const [selectedTranscript, setSelectedTranscript] = useState<Transcript | undefined>(undefined);
+    const { editContent } = useContentEditor();
     useEffect(() => {
         (async () => {
             if (!id) {
@@ -43,7 +45,9 @@ export const FileEditor: React.FC<{id: string, file: File, onChange: (file: File
     }, [id]);
     return (
         <>
-            <FileDrop>
+            <FileDrop onUpload={(c) => {
+                editContent(c);
+            }}>
             </FileDrop>
             {file.file && (<p>{file.file}</p>)}
             <div className="dropdown">

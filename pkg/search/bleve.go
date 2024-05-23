@@ -1,4 +1,4 @@
-package content
+package search
 
 import "github.com/blevesearch/bleve"
 

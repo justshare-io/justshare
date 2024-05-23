@@ -6,6 +6,7 @@ import {EventService} from "@/rpc/event/event_connect";
 import {createConnectTransport} from "@connectrpc/connect-web";
 import {createPromiseClient} from "@connectrpc/connect";
 import {KubesService} from "@/rpc/kubes/kubes_connect";
+import {BucketService} from "@/rpc/bucket/bucket_connect";
 
 export const baseURL = process.env.BASE_URL;
 
@@ -20,6 +21,7 @@ export const userService = createPromiseClient(UserService, transport);
 export const chatService = createPromiseClient(ChatService, transport);
 export const eventService = createPromiseClient(EventService, transport);
 export const kubesService = createPromiseClient(KubesService, transport);
+export const bucketService = createPromiseClient(BucketService, transport);
 
 // extension needs full url to connect to the server
 export const extTransport = createConnectTransport({

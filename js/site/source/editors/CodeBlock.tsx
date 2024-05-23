@@ -30,24 +30,37 @@ const languageClassPrefix = 'language-';
 
 const CodeBlockContent = createStronglyTypedTiptapNode({
     name: 'codeBlock',
+    content: 'inline*',
+    group: 'blockContent',
 
+    addAttributes() {
+        return {
+            index: {
+                default: null,
+                parseHTML: (element) => element.getAttribute("data-index"),
+                renderHTML: (attributes) => {
+                    return {
+                        "data-index": attributes.index,
+                    };
+                },
+            },
+        };
+    },
     addOptions() {
         return {
             ...this.parent?.(),
             lowlight: lowlight,
         }
     },
-    content: 'inline*',
     addProseMirrorPlugins() {
         return [
-        ...this.parent?.() || [],
             LowlightPlugin({
                 name: this.name,
-                lowlight: this.options.lowlight,
-                defaultLanguage: this.options.defaultLanguage,
+                lowlight: lowlight,
+                defaultLanguage: 'plaintext',
             }),
         ];
-    }
+    },
 });
 
 export const CodeBlock = createBlockSpecFromStronglyTypedTiptapNode(

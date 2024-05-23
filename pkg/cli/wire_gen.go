@@ -14,6 +14,7 @@ import (
 	"github.com/justshare-io/justshare/pkg/content/normalize"
 	"github.com/justshare-io/justshare/pkg/content/store"
 	"github.com/justshare-io/justshare/pkg/db"
+	"github.com/justshare-io/justshare/pkg/deploy"
 	"github.com/justshare-io/justshare/pkg/event"
 	"github.com/justshare-io/justshare/pkg/group"
 	"github.com/justshare-io/justshare/pkg/http"
@@ -48,7 +49,11 @@ func Wire() (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	client, err := db.NewEnt(dbConfig)
+	bucketConfig, err := bucket.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	client, err := db.NewEnt(dbConfig, bucketConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -65,15 +70,7 @@ func Wire() (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	bucketConfig, err := bucket.NewConfig(provider)
-	if err != nil {
-		return nil, err
-	}
 	builder, err := bucket.NewBuilder(bucketConfig)
-	if err != nil {
-		return nil, err
-	}
-	bucketBucket, err := bucket.New(bucketConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +79,11 @@ func Wire() (*cli.App, error) {
 		return nil, err
 	}
 	whisperClient := whisper.NewClient(whisperConfig, openaiConfig, builder)
-	normalizeNormalize := normalize.New(builder, bucketBucket, whisperClient, entStore)
-	service := content.NewService(entStore, sessionManager, agent, normalizeNormalize, bucketBucket, builder, whisperClient)
+	normalizeNormalize := normalize.New(builder, whisperClient, entStore)
+	service, err := content.NewService(entStore, sessionManager, agent, normalizeNormalize, builder, whisperClient)
+	if err != nil {
+		return nil, err
+	}
 	groupEntStore := group.NewEntStore(client)
 	userEntStore := user.NewEntStore(client)
 	userConfig, err := user.NewConfig(provider)
@@ -123,7 +123,12 @@ func Wire() (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	apihttpServer := server.New(contentConfig, service, builder, sessionManager, userService, chatService, eventService, kubesService)
+	deployConfig, err := deploy.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	deployService := deploy.NewService(deployConfig, builder)
+	apihttpServer := server.New(contentConfig, service, builder, sessionManager, userService, chatService, eventService, kubesService, deployService)
 	app := NewApp(logLog, apihttpServer, discordSession)
 	return app, nil
 }

@@ -75,7 +75,7 @@ func (s *Normalize) DownloadYouTubeVideo(ctx context.Context, c *connect_go.Requ
 	}
 	defer w.Close()
 
-	filepath, err := s.fileStore.NewFile(filename)
+	filepath, err := s.fileStore.File(filename)
 	if err != nil {
 		return nil, err
 	}

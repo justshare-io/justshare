@@ -5,7 +5,7 @@ import {editorContent, useContentEditor, useSources, useVoice} from "@/source/st
 import {Content, GRPCTypeInfo, Post, Section, Site, File} from "@/rpc/content/content_pb";
 import {
     AdjustmentsHorizontalIcon,
-    MicrophoneIcon,
+    MicrophoneIcon, MinusIcon,
     PaperAirplaneIcon,
     PlusIcon,
     StopIcon,
@@ -39,7 +39,7 @@ import "@blocknote/react/style.css";
 import {CommandMenu} from "@/components/CommandMenu";
 import {AIBlock, Blockquote, blockSchema, CodeBlock, insertBlockquote, insertCode} from "@/source/editors/CodeBlock";
 import {RiAlertFill, RiText} from "react-icons/ri";
-import {TemplatePlayground} from "@/components/TemplatePlayground";
+import {TemplatePlayground} from "@/source/editors/TemplatePlayground";
 import {Alert} from "@/source/editors/Alert";
 import {Code} from "@connectrpc/connect";
 
@@ -48,26 +48,6 @@ const schema = BlockNoteSchema.create({
         ...defaultBlockSpecs,
         codeBlock: CodeBlock,
     }
-});
-
-const insertAlert = (editor: typeof schema.BlockNoteEditor) => ({
-    title: "Alert",
-    onItemClick: () => {
-        insertOrUpdateBlock(editor, {
-            type: "alert",
-        });
-    },
-    aliases: [
-        "alert",
-        "notification",
-        "emphasize",
-        "warning",
-        "error",
-        "info",
-        "success",
-    ],
-    group: "Other",
-    icon: <RiAlertFill />,
 });
 
 export const ContentEditor: React.FC<{}> = ({}) => {
@@ -85,7 +65,8 @@ export const ContentEditor: React.FC<{}> = ({}) => {
 
     const fc = useForm();
     const { setValue } = fc;
-    const abortControllerRef = useRef<AbortController|undefined>(undefined);
+
+    const [relatedContent, setRelatedContent] = useState<string[]>([]);
     const [state, setState] = useState<{
         editor: { blocks: string, html: string, } | undefined,
         initialChanges: number,
@@ -94,17 +75,9 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         initialChanges: 0,
     });
 
-    const [relatedContent, setRelatedContent] = useState<string[]>([]);
-
-    // TODO breadchris this will become problematic with multiple forms on the page, need provider
     useEffect(() => {
         void loadFormTypes();
         setFormControl(fc);
-        return () => {
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
-            }
-        };
     }, []);
 
     useEffect(() => {
@@ -195,77 +168,6 @@ export const ContentEditor: React.FC<{}> = ({}) => {
             ...content,
             tags: content.tags.filter((t) => t !== tag),
         }));
-    }
-
-    const inferFromSelectedText = async (prompt: string) => {
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-        }
-        const controller = new AbortController();
-        abortControllerRef.current = controller;
-
-        const aiBlocks = editor.insertBlocks(
-            [
-                {
-                    content: "let me think...",
-                },
-            ],
-            editor.getTextCursorPosition().block,
-            "after"
-        );
-
-        function countIndentationDepth(inputString: string): number {
-            const match = inputString.match(/^( {4}|\t)*/);
-            if (!match) {
-                return 0;
-            }
-            const matchedString = match[0];
-            return matchedString.split(/( {4}|\t)/).filter(Boolean).length;
-        }
-
-        try {
-            const res = contentService.infer({
-                prompt,
-            }, {
-                timeoutMs: undefined,
-                signal: controller.signal,
-            })
-            let content = '';
-            let lastBlock = aiBlocks[0];
-
-            let prevDepth = -1;
-            let count = 0;
-            const insertLine = (text: string) => {
-                const newBlocks = editor.insertBlocks(
-                    [
-                        {
-                            content: text,
-                        },
-                    ],
-                    lastBlock,
-                    count === 0 ? "nested" : "after"
-                );
-                return newBlocks[0];
-            }
-            for await (const exec of res) {
-                // keep collecting until a newline is found
-                content += exec.text;
-                if (content.includes('\n')) {
-                    const depth = countIndentationDepth(content);
-                    content = content.trim()
-
-                    lastBlock = insertLine(content);
-                    content = '';
-                    prevDepth = depth;
-                    count += 1;
-                }
-            }
-        } catch (e: any) {
-            toast.error(e.message);
-            console.log(e);
-        } finally {
-            abortControllerRef.current = undefined;
-        }
     }
 
     function scrollToMakeBottomVisible(element: Element): void {
@@ -382,30 +284,6 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         };
     }, []);
 
-    const insertAI: ReactSlashMenuItem<typeof blockSchema> = {
-        name: "Ask AI",
-        execute: (editor) => {
-            // editor.insertBlocks(
-            //     [
-            //         {
-            //             type: "aiBlock",
-            //             props: {},
-            //         },
-            //     ],
-            //     editor.getTextCursorPosition().block,
-            //     "after"
-            // );
-            const content = editor.getTextCursorPosition().block.content;
-            if (content && content.length > 0 && content[0].type === "text") {
-                const text = content[0].text;
-                void inferFromSelectedText(text);
-            }
-        },
-        aliases: ["ai"],
-        group: "Other",
-        icon: <RiText />,
-    };
-
     const contentFromForm = (): Content|undefined => {
         if (!formControl) {
             return undefined;
@@ -443,16 +321,14 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         }
     }
 
-    const onStop = () => {
-        abortControllerRef.current?.abort();
-    }
-
     const [selectedTag, setSelectedTag] = useState<string>('');
     const onAddTag = (tag: string) => {
         if (tag) {
             addTag(tag);
         }
     };
+
+    const [tagInputOpen, setTagInputOpen] = useState<boolean>(false);
 
     // TODO breadchris setRelatedContent([...relatedContent, url]);
 
@@ -463,21 +339,26 @@ export const ContentEditor: React.FC<{}> = ({}) => {
                 <div className="flex flex-row justify-between">
                     <div>
                         <span className={"space-x-1"}>
-                        <FilteredTagInput
-                          selectedTag={selectedTag}
-                          setSelectedTag={setSelectedTag}
-                          onAddTag={onAddTag}
-                        />
-                        {content?.tags.map((tag) => (
-                          <span key={tag} className="badge badge-outline badge-sm" onClick={() => removeTag(tag)}>{tag}</span>
-                        ))}
+                            <span onClick={() => setTagInputOpen(!tagInputOpen)} className={"badge badge-outline badge-sm"}>
+                                {tagInputOpen ? '-' : '+'}
+                            </span>
+                            {content?.tags.map((tag) => (
+                              <span key={tag} className="badge badge-outline badge-sm" onClick={() => removeTag(tag)}>{tag}</span>
+                            ))}
+                            {tagInputOpen && (
+                                <FilteredTagInput
+                                    selectedTag={selectedTag}
+                                    setSelectedTag={setSelectedTag}
+                                    onAddTag={onAddTag}
+                                />
+                            )}
                         </span>
                     </div>
-                    <div>
-                        <button className={"btn"} onClick={onSubmit}>save</button>
+                    <div className={"flex space-x-2 items-center"}>
                         <button onClick={() => settingsModal.current?.showModal()}>
                             <AdjustmentsHorizontalIcon className="h-6 w-6" />
                         </button>
+                        <button className={"btn"} onClick={onSubmit}>save</button>
                     </div>
                 </div>
                 {editor && <ContentTypeEditor onChange={onEditorContentChange} content={content} onUpdate={editContent} editor={editor} />}
@@ -525,6 +406,20 @@ const ContentTypeEditor: React.FC<{
     editor: typeof schema.BlockNoteEditor,
     onChange: () => void,
 }> = ({content, onUpdate, editor, onChange}) => {
+    const abortControllerRef = useRef<AbortController|undefined>(undefined);
+
+    // TODO breadchris this will become problematic with multiple forms on the page, need provider
+    useEffect(() => {
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
+    }, []);
+
+    const onStop = () => {
+        abortControllerRef.current?.abort();
+    }
     const insertCode = (editor: typeof schema.BlockNoteEditor): DefaultReactSuggestionItem => ({
         title: "Code",
         onItemClick: () => {
@@ -537,13 +432,111 @@ const ContentTypeEditor: React.FC<{
         subtext: "Insert a code block",
         icon: <RiText size={18} />,
     })
+
+    const inferFromSelectedText = async (prompt: string) => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
+        const aiBlocks = editor.insertBlocks(
+            [
+                {
+                    content: "let me think...",
+                },
+            ],
+            editor.getTextCursorPosition().block,
+            "after"
+        );
+
+        function countIndentationDepth(inputString: string): number {
+            const match = inputString.match(/^( {4}|\t)*/);
+            if (!match) {
+                return 0;
+            }
+            const matchedString = match[0];
+            return matchedString.split(/( {4}|\t)/).filter(Boolean).length;
+        }
+
+        try {
+            const res = contentService.infer({
+                prompt,
+            }, {
+                timeoutMs: undefined,
+                signal: controller.signal,
+            })
+            let content = '';
+            let lastBlock = aiBlocks[0];
+
+            let prevDepth = -1;
+            let count = 0;
+            const insertLine = (text: string) => {
+                const newBlocks = editor.insertBlocks(
+                    [
+                        {
+                            content: text,
+                        },
+                    ],
+                    lastBlock,
+                    count === 0 ? "nested" : "after"
+                );
+                return newBlocks[0];
+            }
+            for await (const exec of res) {
+                // keep collecting until a newline is found
+                content += exec.text;
+                if (content.includes('\n')) {
+                    const depth = countIndentationDepth(content);
+                    content = content.trim()
+
+                    lastBlock = insertLine(content);
+                    content = '';
+                    prevDepth = depth;
+                    count += 1;
+                }
+            }
+            if (content) {
+                insertLine(content);
+            }
+        } catch (e: any) {
+            toast.error(e.message);
+            console.log(e);
+        } finally {
+            abortControllerRef.current = undefined;
+        }
+    }
+
+    const insertAI = (editor: typeof schema.BlockNoteEditor): DefaultReactSuggestionItem => ({
+        title: "Ask AI",
+        onItemClick: () => {
+            // editor.insertBlocks(
+            //     [
+            //         {
+            //             type: "aiBlock",
+            //             props: {},
+            //         },
+            //     ],
+            //     editor.getTextCursorPosition().block,
+            //     "after"
+            // );
+            const content = editor.getTextCursorPosition().block.content;
+            if (content && content.length > 0 && content[0].type === "text") {
+                const text = content[0].text;
+                void inferFromSelectedText(text);
+            }
+        },
+        aliases: ["ai"],
+        group: "Other",
+        icon: <RiText />,
+    });
     const items = [
         ...getDefaultReactSlashMenuItems(editor),
+        insertAI(editor),
         insertCode(editor),
-        insertAlert(editor),
     ];
     const blockNoteView = (
-        <BlockNoteView className={"touch-pan-y"} editor={editor} onChange={onChange}>
+        <BlockNoteView className={"touch-pan-y"} editor={editor} onChange={onChange} slashMenu={false}>
             <SuggestionMenuController
                 triggerCharacter={"/"}
                 getItems={async (query) =>

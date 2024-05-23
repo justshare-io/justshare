@@ -80,7 +80,7 @@ func splitWAVFile(builder *bucket.Builder, id string, filepath string, maxFileSi
 	return nil
 }
 
-func splitMP3File(fileStore *bucket.Bucket, id string, filepath string, maxFileSize int, cb func(string) error) error {
+func splitMP3File(fileStore *bucket.Builder, id string, filepath string, maxFileSize int, cb func(string) error) error {
 	const headerSize = 128 // approximate header size (in bytes), adjust as necessary
 	file, err := os.Open(filepath)
 	if err != nil {
@@ -100,7 +100,7 @@ func splitMP3File(fileStore *bucket.Bucket, id string, filepath string, maxFileS
 
 	chunks := int(math.Ceil(float64(frameCount) / float64(maxSamplesPerChunk)))
 
-	d, err := fileStore.NewDir(id + "_chunks")
+	d, err := fileStore.Dir(id + "_chunks").Build()
 	if err != nil {
 		return errors.Wrapf(err, "failed to create bucket dir for file %s", filepath)
 	}

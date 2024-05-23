@@ -4,6 +4,7 @@ import (
 	"github.com/justshare-io/justshare/pkg/bucket"
 	"github.com/justshare-io/justshare/pkg/content"
 	"github.com/justshare-io/justshare/pkg/db"
+	"github.com/justshare-io/justshare/pkg/deploy"
 	"github.com/justshare-io/justshare/pkg/event"
 	"github.com/justshare-io/justshare/pkg/kubes"
 	"github.com/justshare-io/justshare/pkg/log"
@@ -36,6 +37,7 @@ type Config struct {
 	Kubes   kubes.Config   `yaml:"kubes"`
 	Log     log.Config     `yaml:"log"`
 	Signal  signal.Config  `yaml:"signal"`
+	Deploy  deploy.Config  `yaml:"deploy"`
 }
 
 func newDefaultConfig() Config {
@@ -53,6 +55,7 @@ func newDefaultConfig() Config {
 		Kubes:   kubes.NewDefaultConfig(),
 		Log:     log.NewDefaultConfig(),
 		Signal:  signal.NewDefaultConfig(),
+		Deploy:  deploy.NewDefaultConfig(),
 	}
 }
 

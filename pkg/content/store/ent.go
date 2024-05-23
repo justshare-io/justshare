@@ -225,7 +225,7 @@ func (s *EntStore) SetTags(ctx context.Context, contentID uuid.UUID, tags []stri
 }
 
 func (s *EntStore) GetTags(ctx context.Context) ([]string, error) {
-	tags, err := s.client.Tag.Query().All(ctx)
+	tags, err := s.client.Tag.Query().Order(tag.ByContents(sql.OrderByField(entcontent.FieldUpdatedAt, sql.OrderDesc()))).All(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get tags")
 	}

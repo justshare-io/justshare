@@ -13,10 +13,12 @@ import (
 	"github.com/justshare-io/justshare/pkg/chat"
 	"github.com/justshare-io/justshare/pkg/content"
 	"github.com/justshare-io/justshare/pkg/content/normalize"
+	"github.com/justshare-io/justshare/pkg/deploy"
 	"github.com/justshare-io/justshare/pkg/event"
 	"github.com/justshare-io/justshare/pkg/gen/chat/chatconnect"
 	pcontent "github.com/justshare-io/justshare/pkg/gen/content"
 	"github.com/justshare-io/justshare/pkg/gen/content/contentconnect"
+	"github.com/justshare-io/justshare/pkg/gen/deploy/deployconnect"
 	"github.com/justshare-io/justshare/pkg/gen/event/eventconnect"
 	"github.com/justshare-io/justshare/pkg/gen/kubes/kubesconnect"
 	"github.com/justshare-io/justshare/pkg/gen/user/userconnect"
@@ -48,6 +50,7 @@ type APIHTTPServer struct {
 	chatService    *chat.Service
 	eventService   *event.Service
 	kubesService   *kubes.Service
+	deployService  *deploy.Service
 	handler        *gothic.Handler
 	builder        *bucket.Builder
 }
@@ -76,6 +79,7 @@ func New(
 	chatService *chat.Service,
 	eventService *event.Service,
 	kubesService *kubes.Service,
+	deployService *deploy.Service,
 ) *APIHTTPServer {
 	return &APIHTTPServer{
 		config:         config,
@@ -86,6 +90,7 @@ func New(
 		chatService:    chatService,
 		eventService:   eventService,
 		kubesService:   kubesService,
+		deployService:  deployService,
 		handler: gothic.NewHandler(
 			sessions.NewCookieStore([]byte(config.SessionSecret)),
 			gothic.WithProviders(
@@ -145,6 +150,7 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 	apiRoot.Handle(userconnect.NewUserServiceHandler(a.userService, interceptors))
 	apiRoot.Handle(chatconnect.NewChatServiceHandler(a.chatService, interceptors))
 	apiRoot.Handle(eventconnect.NewEventServiceHandler(a.eventService, interceptors))
+	apiRoot.Handle(deployconnect.NewDeployServiceHandler(a.deployService, interceptors))
 	if a.kubesService != nil {
 		apiRoot.Handle(kubesconnect.NewKubesServiceHandler(a.kubesService, interceptors))
 	}
@@ -154,6 +160,7 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 		"chat.ChatService",
 		"event.EventService",
 		"kubes.KubesService",
+		"deploy.DeployService",
 	)
 	recoverCall := func(_ context.Context, spec connect.Spec, _ http.Header, p any) error {
 		slog.Error("panic", "err", fmt.Sprintf("%+v", p))
@@ -180,7 +187,7 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 	mediaFileServer := http.FileServer(f)
 
 	// TODO breadchris brittle path
-	//blog := http.FS(os.DirFS("data/blog"))
+	//blog := http.FS(os.DirFS("data/bucket/blog"))
 	//blogFileServer := http.FileServer(blog)
 
 	u, err := url.Parse(a.config.Proxy)
@@ -213,19 +220,12 @@ func (a *APIHTTPServer) NewAPIHandler() (http.Handler, error) {
 				http.NotFound(w, r)
 				return
 			}
-			res, err := a.contentService.Search(r.Context(), connect.NewRequest(&pcontent.Query{
-				ContentID: parts[1],
-			}))
+			sc, err := a.contentService.GetContentByID(r.Context(), parts[1])
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			if len(res.Msg.StoredContent) != 1 {
-				http.NotFound(w, r)
-				return
-			}
-			sc := res.Msg.StoredContent[0]
-			switch t := sc.Content.Type.(type) {
+			switch t := sc.Type.(type) {
 			case *pcontent.Content_Page:
 				// t.Page.Html is a go template
 				tmpl, err := template.New("page").Parse(t.Page.Html)

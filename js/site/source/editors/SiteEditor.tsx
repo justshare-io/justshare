@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {Section, Site} from "@/rpc/content/content_pb";
 import {PlusIcon} from "@heroicons/react/24/outline";
 import {SectionEditor} from "@/source/editors/SectionEditor";
-import {TemplatePlayground} from "@/components/TemplatePlayground";
+import {TemplatePlayground} from "@/source/editors/TemplatePlayground";
 
 export const SiteEditor: React.FC<{site: Site, onUpdate: (s: Site) => void}> = ({site, onUpdate}) => {
     const [sectionIdx, setSectionIdx] = useState<number|undefined>(undefined);

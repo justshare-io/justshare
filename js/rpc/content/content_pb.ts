@@ -2296,6 +2296,11 @@ export class Site extends Message<Site> {
    */
   hugoConfig?: HugoConfig;
 
+  /**
+   * @generated from field: repeated content.Route routes = 3;
+   */
+  routes: Route[] = [];
+
   constructor(data?: PartialMessage<Site>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2306,6 +2311,7 @@ export class Site extends Message<Site> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "sections", kind: "message", T: Section, repeated: true },
     { no: 2, name: "hugo_config", kind: "message", T: HugoConfig },
+    { no: 3, name: "routes", kind: "message", T: Route, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Site {
@@ -2322,6 +2328,49 @@ export class Site extends Message<Site> {
 
   static equals(a: Site | PlainMessage<Site> | undefined, b: Site | PlainMessage<Site> | undefined): boolean {
     return proto3.util.equals(Site, a, b);
+  }
+}
+
+/**
+ * @generated from message content.Route
+ */
+export class Route extends Message<Route> {
+  /**
+   * @generated from field: string path = 1;
+   */
+  path = "";
+
+  /**
+   * @generated from field: content.Page page = 2;
+   */
+  page?: Page;
+
+  constructor(data?: PartialMessage<Route>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "content.Route";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "page", kind: "message", T: Page },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Route {
+    return new Route().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Route {
+    return new Route().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Route {
+    return new Route().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Route | PlainMessage<Route> | undefined, b: Route | PlainMessage<Route> | undefined): boolean {
+    return proto3.util.equals(Route, a, b);
   }
 }
 

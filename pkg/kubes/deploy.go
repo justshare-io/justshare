@@ -111,8 +111,9 @@ func NewDeployment(
 									Value: name,
 								},
 								{
+									// TODO breadchris open sub-bucket https://gocloud.dev/howto/blob/#prefix
 									Name:  "BUCKET",
-									Value: "justshare-backup",
+									Value: fmt.Sprintf("gs://justshare-backup/%s", name),
 								},
 								{
 									Name:  "GOOGLE_CLIENT_ID",

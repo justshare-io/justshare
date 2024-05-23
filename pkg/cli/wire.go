@@ -8,6 +8,7 @@ import (
 	"github.com/justshare-io/justshare/pkg/bucket"
 	"github.com/justshare-io/justshare/pkg/config"
 	"github.com/justshare-io/justshare/pkg/db"
+	"github.com/justshare-io/justshare/pkg/deploy"
 	"github.com/justshare-io/justshare/pkg/log"
 	"github.com/justshare-io/justshare/pkg/providers/openai"
 	"github.com/justshare-io/justshare/pkg/providers/whisper"
@@ -25,5 +26,6 @@ func Wire() (*cli.App, error) {
 		bucket.ProviderSet,
 		openai.ProviderSet,
 		whisper.ProviderSet,
+		deploy.ProviderSet,
 	))
 }

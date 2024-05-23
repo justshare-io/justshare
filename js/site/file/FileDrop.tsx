@@ -1,8 +1,9 @@
 import React, {ChangeEvent, useCallback, useState} from 'react';
-import {contentService, projectService} from "@/service";
-import { Data, File } from '@/rpc/content/content_pb';
+import {bucketService, contentService, projectService} from "@/service";
+import {Content, Data, File} from '@/rpc/content/content_pb';
 import {useContentEditor} from "@/source/state";
 import toast from "react-hot-toast";
+import {uuidv4} from "../../extension/util";
 
 interface FileDropProps {
     children?: React.ReactNode;
@@ -50,40 +51,45 @@ type UploadFileResponse = {
     url: string;
 };
 
-async function uploadFormFile(file: Blob): Promise<UploadFileResponse> {
-    const formData = new FormData();
+async function uploadFormFile(file: Blob): Promise<string> {
+    try {
+        const res = await bucketService.signedURL({
+            path: file.name,
+        })
 
-    formData.append('file', file);
+        // TODO breadchris use signed upload for local files, see pkg/bucket
+        if (res.url === '/upload') {
+            res.url += `?name=${file.name}`
+        }
 
-    const response = await fetch('/upload', {
-        method: 'POST',
-        body: formData,
-    });
-
-    if (response.ok) {
-        const result = await response.json();
-        return {
-            id: result.id,
-            url: result.url,
-        };
-    } else {
-        throw new Error(`Failed to upload file: ${response.status} ${response.statusText}`);
+        const response = await fetch(res.url, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'Content-Type': 'application/octet-stream'
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to upload file: ${response.status} ${response.statusText}`);
+        }
+        toast.success('uploaded file')
+    } catch (e: any) {
+        toast.error(e.toString());
     }
+    return file.name;
 }
 
-export const FileDrop: React.FC<FileDropProps> = ({children}) => {
+export const FileDrop: React.FC<{
+    children?: React.ReactNode;
+    onUpload: (file: Content) => void;
+}> = ({children, onUpload}) => {
     const [isDragging, setIsDragging] = useState(false);
-
-    const {
-        editContent,
-    } = useContentEditor();
 
     const uploadFile = async (file: globalThis.File) => {
         try {
             const res = await uploadFormFile(file);
             const contents = await contentService.save({
                 content: {
-                    id: res.id,
                     type: {
                         case: 'data',
                         value: new Data({
@@ -91,7 +97,7 @@ export const FileDrop: React.FC<FileDropProps> = ({children}) => {
                                 case: 'file',
                                 value: new File({
                                     file: file.name,
-                                    url: res.url,
+                                    url: res,
                                 })
                             }
                         })
@@ -101,7 +107,7 @@ export const FileDrop: React.FC<FileDropProps> = ({children}) => {
                 timeoutMs: undefined,
             })
             if (contents.content) {
-                editContent(contents.content);
+                onUpload(contents.content);
             }
         } catch (e) {
             toast.error('Failed to upload file');

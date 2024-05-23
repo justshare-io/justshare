@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package bucket;
+
+service BucketService {
+    rpc SignedURL(SignedURLRequest) returns (SignedURLResponse);
+    rpc Readdir(ReaddirRequest) returns (ReaddirResponse);
+    rpc Remove(RemoveRequest) returns (RemoveResponse);
+}
+
+message SignedURLRequest {
+    string path = 1;
+}
+
+message SignedURLResponse {
+    string url = 1;
+}
+
+message RemoveRequest {
+    string path = 1;
+}
+
+message RemoveResponse {}
+
+message ReaddirRequest {
+    string path = 1;
+}
+
+message ReaddirResponse {
+    repeated FileInfo files = 1;
+}
+
+message FileInfo {
+    string name = 1;
+    bool is_dir = 2;
+    int64 size = 3;
+}

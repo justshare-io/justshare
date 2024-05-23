@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package deploy;
+
+service DeployService {
+  rpc Deploy (DeployRequest) returns (DeployResponse);
+}
+
+message DeployRequest {
+}
+
+message DeployResponse {
+  string endpoint = 1;
+}

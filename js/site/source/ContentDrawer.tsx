@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {useContentEditor, useSources} from "@/source/state";
 import {ListBulletIcon, TrashIcon} from "@heroicons/react/24/outline";
 import {AddTagBadge} from "@/tag/AddTagBadge";
@@ -14,6 +14,7 @@ export const ContentDrawer: React.FC<{}> = () => {
         setTypes,
         setTags,
         tags,
+        getSources,
     } = useSources();
 
     const toggleType = (type: string) => async () => {

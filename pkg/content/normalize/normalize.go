@@ -22,22 +22,20 @@ import (
 type Normalize struct {
 	bucket *bucket.Builder
 	// TODO breadchris use just builder instead
-	fileStore *bucket.Bucket
+	fileStore *bucket.Builder
 	whisper   *whisper.Client
 	content   *store.EntStore
 }
 
 func New(
 	b *bucket.Builder,
-	fileStore *bucket.Bucket,
 	whisper *whisper.Client,
 	content *store.EntStore,
 ) *Normalize {
 	return &Normalize{
-		bucket:    b,
-		fileStore: fileStore,
-		whisper:   whisper,
-		content:   content,
+		bucket:  b,
+		whisper: whisper,
+		content: content,
 	}
 }
 

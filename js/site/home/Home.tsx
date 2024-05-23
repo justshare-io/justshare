@@ -2,6 +2,7 @@ import {SourcePage} from "@/source/SourcePage";
 import {useAuth} from "@/auth/state";
 import {AuthForm} from "@/auth/AuthForm";
 import {useEffect} from "react";
+import {useParams} from "react-router";
 
 export function Home() {
     const { user, loginResponse , tryLogin} = useAuth();

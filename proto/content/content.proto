@@ -319,6 +319,12 @@ message GRPCTypeInfo {
 message Site {
   repeated Section sections = 1;
   HugoConfig hugo_config = 2;
+  repeated Route routes = 3;
+}
+
+message Route {
+  string path = 1;
+  Page page = 2;
 }
 
 message Section {

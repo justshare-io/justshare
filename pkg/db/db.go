@@ -5,6 +5,7 @@ import (
 	"github.com/benbjohnson/litestream"
 	lsgcs "github.com/benbjohnson/litestream/gcs"
 	"github.com/google/wire"
+	"github.com/justshare-io/justshare/pkg/bucket"
 	"github.com/justshare-io/justshare/pkg/db/model"
 	"github.com/pkg/errors"
 	"gorm.io/driver/postgres"
@@ -27,6 +28,7 @@ var (
 
 type GormStore struct {
 	c  Config
+	bc bucket.Config
 	db *gorm.DB
 }
 
@@ -125,9 +127,10 @@ func (s *GormStore) registerDBCallbacks(ctx context.Context, lsdb *litestream.DB
 }
 
 func (s *GormStore) newReplica(lsdb *litestream.DB) *litestream.Replica {
-	// TODO breadchris support gcs https://litestream.io/guides/gcs/
 	c := lsgcs.NewReplicaClient()
-	c.Bucket = s.c.Bucket
+
+	// TODO breadchris bucket config should be better defined
+	c.Bucket = s.bc.Url.Host
 	c.Path = s.c.BackupName
 
 	//client := lss3.NewReplicaClient()

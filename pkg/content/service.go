@@ -40,9 +40,9 @@ type Service struct {
 	sess       *http.SessionManager
 	openai     *openai.Agent
 	normalizer *normalize.Normalize
-	fileStore  *bucket.Bucket
 	builder    *bucket.Builder
 	whisper    *whisper.Client
+	notes      *bucket.Builder
 }
 
 var _ contentconnect.ContentServiceHandler = (*Service)(nil)
@@ -57,19 +57,44 @@ func NewService(
 	sess *http.SessionManager,
 	openai *openai.Agent,
 	normalizer *normalize.Normalize,
-	fileStore *bucket.Bucket,
 	builder *bucket.Builder,
 	whisper *whisper.Client,
-) *Service {
+) (*Service, error) {
+	nURL := "file://path/Users/hacked/Documents/Github/notes"
+	u, err := bucket.NewURL(nURL)
+	if err != nil {
+		return nil, err
+	}
+	notes, err := bucket.NewBuilder(bucket.Config{
+		Bucket: nURL,
+		Url:    u,
+	})
+	if err != nil {
+		return nil, err
+	}
 	return &Service{
 		content:    db,
 		sess:       sess,
 		openai:     openai,
 		normalizer: normalizer,
-		fileStore:  fileStore,
 		builder:    builder,
 		whisper:    whisper,
+		notes:      notes,
+	}, nil
+}
+
+// TODO breadchris remove once groups are more defined, this shouldn't need to exist
+func (s *Service) GetContentByID(ctx context.Context, id string) (*content.Content, error) {
+	idUUID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to parse content id")
 	}
+	cnt, err := s.content.GetContentByID(ctx, idUUID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to get stored content")
+	}
+	cnt.Data.Content.Id = cnt.ID.String()
+	return cnt.Data.Content, nil
 }
 
 func (s *Service) VoiceInput(ctx context.Context, c *connect_go.Request[content.VoiceInputRequest], c2 *connect_go.ServerStream[content.VoiceInputResponse]) error {
@@ -300,15 +325,8 @@ func (s *Service) buildForGithub(
 	site *content.Site,
 	blogSections []publish.BlogSection,
 ) error {
-	notes, err := bucket.NewBuilder(bucket.Config{
-		Path: "/Users/hacked/Documents/Github/notes",
-	})
-	if err != nil {
-		return err
-	}
-
 	// TODO breadchris right now it is being set to @breadchris, this should come from username?
-	d, err := notes.Dir("docs").Build()
+	d, err := s.notes.Dir("docs").Build()
 	if err != nil {
 		return err
 	}
@@ -443,13 +461,13 @@ func (s *Service) Save(ctx context.Context, c *connect_go.Request[content.Conten
 		case *content.Data_File:
 			if len(t.File.Data) > 0 {
 				// TODO breadchris this syntax feels weird, i would expect to get back a path
-				err := s.fileStore.Bucket.WriteAll(ctx, c.Msg.Content.Id, t.File.Data, nil)
+				err := s.builder.Bucket.WriteAll(ctx, c.Msg.Content.Id, t.File.Data, nil)
 				if err != nil {
 					return nil, err
 				}
 
 				// TODO breadchris newfile should return a url that can be set as the content url
-				t.File.Url, err = s.fileStore.NewFile(c.Msg.Content.Id)
+				t.File.Url, err = s.builder.File(c.Msg.Content.Id)
 				if err != nil {
 					return nil, err
 				}

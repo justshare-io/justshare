@@ -38,12 +38,16 @@ export const FilteredTagInput: React.FC<{
         void getTags();
     }, []);
 
+    useEffect(() => {
+        onChange(selectedTag);
+    }, [tags]);
+
     const normalizedTags = normalizeTags(tags);
 
     const filterOptions = (tag: string) => {
         return normalizedTags.filter(
             (option) => option.toLowerCase().indexOf(tag.toLowerCase()) === 0
-        );
+        ).slice(0, 5);
     }
 
     const [matchingOptions, setMatchingOptions] = useState(filterOptions(selectedTag));
@@ -55,8 +59,8 @@ export const FilteredTagInput: React.FC<{
     const debouncedOptions = useDebounce(matchingOptions, 300);
 
     return (
-        <div className={"flex flex-col space-y-2"}>
-            <div className={"flex flex-row space-x-2"}>
+        <div className={"flex flex-col dropdown"}>
+            <div className={"flex flex-row space-x-2 m-1"}>
                 <input
                     type="text"
                     value={selectedTag}
@@ -67,18 +71,25 @@ export const FilteredTagInput: React.FC<{
                 <button onClick={() => onAddTag(selectedTag)} className="btn btn-square btn-primary">
                     <TagIcon className={"h-6 w-6"} />
                 </button>
-            </div>
-            {debouncedOptions.length > 0 && (
-                <ul className={"p-2 shadow menu dropdown-content bg-base-100 rounded-box w-52"}>
+                <div className={"flex flex-row space-x-2 items-center"}>
                     {debouncedOptions.map((option) => (
-                        <li key={option}>
-                            <a onClick={() => {
-                                onChange(option)
-                            }}>{option}</a>
-                        </li>
+                        <div className={"badge badge-outline"} key={option} onClick={() => {
+                            onAddTag(option);
+                        }}>
+                            {option}
+                        </div>
                     ))}
-                </ul>
-            )}
+                </div>
+            </div>
+            {/*<ul className={`flex p-2 shadow menu dropdown-open z-[1] bg-base-100 rounded-box w-52`}>*/}
+            {/*    {debouncedOptions.map((option) => (*/}
+            {/*        <li key={option}>*/}
+            {/*            <a onClick={() => {*/}
+            {/*                onChange(option)*/}
+            {/*            }}>{option}</a>*/}
+            {/*        </li>*/}
+            {/*    ))}*/}
+            {/*</ul>*/}
         </div>
     )
 }

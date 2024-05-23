@@ -1174,11 +1174,36 @@ public struct Content_Site {
   /// Clears the value of `hugoConfig`. Subsequent reads from it will return its default value.
   public mutating func clearHugoConfig() {self._hugoConfig = nil}
 
+  public var routes: [Content_Route] = []
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _hugoConfig: Content_HugoConfig? = nil
+}
+
+public struct Content_Route {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var path: String = String()
+
+  public var page: Content_Page {
+    get {return _page ?? Content_Page()}
+    set {_page = newValue}
+  }
+  /// Returns true if `page` has been explicitly set.
+  public var hasPage: Bool {return self._page != nil}
+  /// Clears the value of `page`. Subsequent reads from it will return its default value.
+  public mutating func clearPage() {self._page = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _page: Content_Page? = nil
 }
 
 public struct Content_Section {
@@ -1259,6 +1284,7 @@ extension Content_Segment: @unchecked Sendable {}
 extension Content_Transcript: @unchecked Sendable {}
 extension Content_GRPCTypeInfo: @unchecked Sendable {}
 extension Content_Site: @unchecked Sendable {}
+extension Content_Route: @unchecked Sendable {}
 extension Content_Section: @unchecked Sendable {}
 #endif  // swift(>=5.5) && canImport(_Concurrency)
 
@@ -3686,6 +3712,7 @@ extension Content_Site: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "sections"),
     2: .standard(proto: "hugo_config"),
+    3: .same(proto: "routes"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3696,6 +3723,7 @@ extension Content_Site: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedMessageField(value: &self.sections) }()
       case 2: try { try decoder.decodeSingularMessageField(value: &self._hugoConfig) }()
+      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.routes) }()
       default: break
       }
     }
@@ -3712,12 +3740,58 @@ extension Content_Site: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     try { if let v = self._hugoConfig {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     } }()
+    if !self.routes.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.routes, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Content_Site, rhs: Content_Site) -> Bool {
     if lhs.sections != rhs.sections {return false}
     if lhs._hugoConfig != rhs._hugoConfig {return false}
+    if lhs.routes != rhs.routes {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Content_Route: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Route"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "path"),
+    2: .same(proto: "page"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.path) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._page) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.path.isEmpty {
+      try visitor.visitSingularStringField(value: self.path, fieldNumber: 1)
+    }
+    try { if let v = self._page {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Content_Route, rhs: Content_Route) -> Bool {
+    if lhs.path != rhs.path {return false}
+    if lhs._page != rhs._page {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

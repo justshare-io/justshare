@@ -25,10 +25,10 @@ type Crawler interface {
 }
 
 type crawler struct {
-	fileStore *bucket.Bucket
+	fileStore *bucket.Builder
 }
 
-func NewCrawler(fileStore *bucket.Bucket) *crawler {
+func NewCrawler(fileStore *bucket.Builder) *crawler {
 	return &crawler{
 		fileStore: fileStore,
 	}

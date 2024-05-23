@@ -9,7 +9,6 @@ type Config struct {
 	Type  string `yaml:"type"`
 	Debug bool   `yaml:"debug"`
 
-	Bucket                       string `yaml:"bucket"`
 	BackupName                   string `yaml:"backup_name"`
 	Endpoint                     string `yaml:"endpoint"`
 	AwsAccessKeyID               string `yaml:"aws_access_key_id"`
@@ -26,7 +25,6 @@ func NewDefaultConfig() Config {
 		Type:  "sqlite3",
 		Debug: false,
 
-		Bucket:                       "${BUCKET:\"justshare\"}",
 		BackupName:                   "${BACKUP_NAME:\"justshare-backup\"}",
 		Endpoint:                     "${ENDPOINT:\"http://localhost:9000\"}",
 		AwsAccessKeyID:               "${AWS_ACCESS_KEY_ID:\"minio\"}",
