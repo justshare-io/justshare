@@ -18,9 +18,12 @@ func NewDeployment(
 	oc openai.Config,
 	cc content.Config,
 ) *appsv1.Deployment {
-	mountDir := "/config"          // Directory where the file will be mounted
-	fileName := "gcs_account.json" // Name of the file in the ConfigMap
+	mountDir := "/config"
+	fileName := "gcs_account.json"
 	mountPath := fmt.Sprintf("%s/%s", mountDir, fileName)
+
+	deployFileName := "gcs_account_deploy.json"
+	deployMountPath := fmt.Sprintf("%s/%s", mountDir, deployFileName)
 
 	volumes := []corev1.Volume{
 		{
@@ -46,6 +49,11 @@ func NewDeployment(
 			Name:      configMapName,
 			MountPath: mountPath,
 			SubPath:   fileName,
+		},
+		{
+			Name:      configMapName,
+			MountPath: deployMountPath,
+			SubPath:   deployFileName,
 		},
 	}
 	return &appsv1.Deployment{
@@ -104,7 +112,7 @@ func NewDeployment(
 								},
 								{
 									Name:  "BACKUPS",
-									Value: "true",
+									Value: "false",
 								},
 								{
 									Name:  "BACKUP_NAME",
@@ -126,6 +134,10 @@ func NewDeployment(
 								{
 									Name:  "GOOGLE_APPLICATION_CREDENTIALS",
 									Value: mountPath,
+								},
+								{
+									Name:  "GCS_ACCOUNT_DEPLOY",
+									Value: deployMountPath,
 								},
 								{
 									Name:  "OPENAI_API_KEY",

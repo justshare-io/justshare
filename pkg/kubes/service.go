@@ -97,6 +97,10 @@ func (s *Service) UpdateDeployment(ctx context.Context, c *connect.Request[kubes
 		return nil, err
 	}
 
+	if err = s.UpsertConfigMap(ctx); err != nil {
+		return nil, err
+	}
+
 	d := NewDeployment(container, c.Msg.Name, configMapName, port, s.oc, s.cc)
 
 	_, err = s.clientSet.AppsV1().Deployments(s.c.DefaultNamespace).Update(ctx, d, metav1.UpdateOptions{})
@@ -158,6 +162,24 @@ func serviceName(name string) string {
 	return fmt.Sprintf("%s-svc", name)
 }
 
+func (s *Service) UpsertConfigMap(ctx context.Context) error {
+	b, err := os.ReadFile(s.c.GcsAccount)
+	if err != nil {
+		return err
+	}
+
+	cd, err := os.ReadFile(s.c.GcsAccountDeploy)
+	if err != nil {
+		return err
+	}
+
+	gcsAccount := map[string]string{
+		"gcs_account.json":        string(b),
+		"gcs_account_deploy.json": string(cd),
+	}
+	return createConfigMap(s.clientSet, s.c.DefaultNamespace, configMapName, gcsAccount)
+}
+
 func (s *Service) NewDeployment(ctx context.Context, c *connect.Request[kubes.NewDeploymentRequest]) (*connect.Response[kubes.NewDeploymentResponse], error) {
 	image := c.Msg.Image
 	name := deploymentName(c.Msg.Name)
@@ -174,15 +196,7 @@ func (s *Service) NewDeployment(ctx context.Context, c *connect.Request[kubes.Ne
 		return nil, fmt.Errorf("invalid service name: %s", name)
 	}
 
-	b, err := os.ReadFile(s.c.GcsAccount)
-	if err != nil {
-		return nil, err
-	}
-	gcsAccount := map[string]string{
-		"gcs_account.json": string(b),
-	}
-	err = createConfigMap(s.clientSet, namespace, configMapName, gcsAccount)
-	if err != nil {
+	if err := s.UpsertConfigMap(ctx); err != nil {
 		return nil, err
 	}
 
@@ -192,7 +206,7 @@ func (s *Service) NewDeployment(ctx context.Context, c *connect.Request[kubes.Ne
 	//}
 
 	slog.Debug("creating deployment", "name", name, "namespace", namespace, "image", image)
-	_, err = s.newDeployment(ctx, namespace, NewDeployment(image, name, configMapName, port, s.oc, s.cc))
+	_, err := s.newDeployment(ctx, namespace, NewDeployment(image, name, configMapName, port, s.oc, s.cc))
 	if err != nil {
 		return nil, err
 	}

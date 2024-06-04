@@ -60,18 +60,18 @@ func NewService(
 	builder *bucket.Builder,
 	whisper *whisper.Client,
 ) (*Service, error) {
-	nURL := "file://path/Users/hacked/Documents/Github/notes"
-	u, err := bucket.NewURL(nURL)
-	if err != nil {
-		return nil, err
-	}
-	notes, err := bucket.NewBuilder(bucket.Config{
-		Bucket: nURL,
-		Url:    u,
-	})
-	if err != nil {
-		return nil, err
-	}
+	//nURL := "file://path/Users/hacked/Documents/Github/notes"
+	//u, err := bucket.NewURL(nURL)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//notes, err := bucket.NewBuilder(bucket.Config{
+	//	Bucket: nURL,
+	//	Url:    u,
+	//})
+	//if err != nil {
+	//	return nil, err
+	//}
 	return &Service{
 		content:    db,
 		sess:       sess,
@@ -79,7 +79,7 @@ func NewService(
 		normalizer: normalizer,
 		builder:    builder,
 		whisper:    whisper,
-		notes:      notes,
+		notes:      nil,
 	}, nil
 }
 

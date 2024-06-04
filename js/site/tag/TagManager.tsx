@@ -3,7 +3,7 @@ import { Tag } from "@/rpc/content/content_pb";
 import { FilteredTagInput } from "@/tag/FilteredTagInput";
 import {contentService} from "@/service";
 
-export const TagManager = () => {
+export const TagManager: React.FC = () => {
     const [tags, setTags] = useState<Tag[]>([]);
     const [filteredTags, setFilteredTags] = useState<string[]>([]);
     const [selectedTag, setSelectedTag] = useState<string>('');
@@ -36,7 +36,12 @@ export const TagManager = () => {
     return (
         <div>
             <div className="p-4">
-                <FilteredTagInput onAddTag={onAddTag} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />
+                <FilteredTagInput
+                    onAddTag={onAddTag}
+                    selectedTag={selectedTag}
+                    setSelectedTag={setSelectedTag}
+                    hideSuggestions={true}
+                />
                 <ul className="list-none">
                     {filteredTags.map((g, idx) => (
                         <li key={`${g}-${idx}`} className="badge badge-primary cursor-pointer" onClick={() => removeFilteredTag(g)}>

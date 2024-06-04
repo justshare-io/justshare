@@ -5981,6 +5981,10 @@ details.collapse summary::-webkit-details-marker {
   margin-bottom: 16rem;
 }
 
+.me-1 {
+  margin-inline-end: 0.25rem;
+}
+
 .ml-2 {
   margin-left: 0.5rem;
 }
@@ -6651,6 +6655,11 @@ details.collapse summary::-webkit-details-marker {
 
 .text-justify {
   text-align: justify;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
 }
 
 .text-3xl {

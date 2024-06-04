@@ -4,7 +4,10 @@ import {PlusIcon} from "@heroicons/react/24/outline";
 import {SectionEditor} from "@/source/editors/SectionEditor";
 import {TemplatePlayground} from "@/source/editors/TemplatePlayground";
 
-export const SiteEditor: React.FC<{site: Site, onUpdate: (s: Site) => void}> = ({site, onUpdate}) => {
+export const SiteEditor: React.FC<{
+    site: Site,
+    onUpdate: (s: Site) => void}
+> = ({site, onUpdate}) => {
     const [sectionIdx, setSectionIdx] = useState<number|undefined>(undefined);
     const deleteSection = () => {
         onUpdate(new Site({

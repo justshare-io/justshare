@@ -49,7 +49,7 @@ const html = `
 export const TemplatePlayground: React.FC<{
     page: Page;
     onChange?: (p: Page) => void;
-}> = React.forwardRef(( {}, ref ) => {
+}> = React.forwardRef(( {page, onChange}, ref ) => {
     // TODO breadchris make configurable
     const wasm = "/app/go.wasm";
     const { user} = useAuth();
@@ -63,7 +63,7 @@ export const TemplatePlayground: React.FC<{
         rendered: string;
         layout: 'horizontal' | 'vertical' | 'preview-only' | 'responsive';
     }>({
-        page: new Page({
+        page: page.html !== '' ? page : new Page({
             html: html,
             data: `Chat:
 - Msg: what did react say to vue?
@@ -110,11 +110,34 @@ export const TemplatePlayground: React.FC<{
         }
     }, [state.page, state.dataFormat]);
 
-    const share = async () => {
-        await navigator.clipboard.writeText(`https://justshare.io/@demo/${state.content.id}`);
-        toast.success("Copied to clipboard");
-    }
+    // const share = async () => {
+    //     await navigator.clipboard.writeText(`https://justshare.io/@demo/${state.content.id}`);
+    //     toast.success("Copied to clipboard");
+    // }
 
+    // const save = async () => {
+    //     if (!user) {
+    //         setAuthModal(true);
+    //         return;
+    //     }
+    //     try {
+    //         state.content.type.value = state.page;
+    //         const res = await contentService.save(new Contents({
+    //             content: state.content,
+    //         }));
+    //         toast.success("Saved");
+    //
+    //         window.history.pushState({}, '', `/app/web/${res.content?.id}`);
+    //         if (!res.content) {
+    //             return;
+    //         }
+    //         setState((prevState) => ({ ...prevState, content: res.content }));
+    //     } catch (error) {
+    //         console.error(error);
+    //         toast.error("Failed to save content: " + error);
+    //     }
+    // }
+    //
     const updateTemplate = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setState((prevState) => ({ ...prevState, template: e.target.value }));
     };
@@ -192,72 +215,6 @@ export const TemplatePlayground: React.FC<{
 
     return (
         <div className={"w-full"}>
-            <div className="navbar bg-base-100">
-                <div className={"flex-1"}>
-                    <a className="btn btn-ghost text-xl">JustShare</a>
-                </div>
-                <div className="flex-none gap-2">
-                    <div className={"flex flex-row justify-end my-2 space-x-2"}>
-                        <div className="lg:flex items-center ml-6 rounded-md ring-1 ring-gray-900/5 shadow-sm dark:ring-0 dark:bg-gray-800 dark:shadow-highlight/4">
-                            <button type="button" onClick={() => {
-                                setState((prevState) => ({...prevState, layout: 'horizontal'}));
-                            }} className={'group focus:outline-none focus-visible:ring-2 rounded-md focus-visible:ring-gray-400/70 dark:focus-visible:ring-gray-500'}>
-                                <span className="sr-only">
-                                    Switch to vertical split layout
-                                </span>
-                                <svg width="42" height="36" viewBox="-8 -7 42 36" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={layoutClass('horizontal')}>
-                                    <path d="M12 3h9a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-9" fill="none"></path><path d="M3 17V5a2 2 0 0 1 2-2h7a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2Z"></path>
-                                </svg>
-                            </button>
-                            <button type="button" onClick={() => {
-                                setState((prevState) => ({...prevState, layout: 'vertical'}));
-                            }} className={'group focus:outline-none focus-visible:ring-2 rounded-md focus-visible:ring-gray-400/70 dark:focus-visible:ring-gray-500'}>
-                                <span className="sr-only">Switch to horizontal split layout</span>
-                                <svg width="42" height="36" viewBox="-8 -7 42 36" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={layoutClass('vertical')}>
-                                    <path d="M23 11V3H3v8h20Z" strokeWidth="0"></path><path d="M23 17V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2ZM22 11H4" fill="none"></path>
-                                </svg>
-                            </button>
-                            <button type="button" onClick={() => {
-                                setState((prevState) => ({...prevState, layout: 'preview-only'}));
-                            }} className={'group focus:outline-none focus-visible:ring-2 rounded-md focus-visible:ring-gray-400/70 dark:focus-visible:ring-gray-500'}>
-                                <span className="sr-only">Switch to preview-only layout</span>
-                                <svg width="42" height="36" viewBox="-8 -7 42 36" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={layoutClass('preview-only')}>
-                                    <path d="M23 17V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2Z" fill="none"></path>
-                                </svg>
-                            </button>
-                            <button type="button" onClick={() => {
-                                setState((prevState) => ({...prevState, layout: 'responsive'}));
-                            }} className={'group focus:outline-none focus-visible:ring-2 rounded-md focus-visible:ring-gray-400/70 dark:focus-visible:ring-gray-500'}>
-                                <span className="sr-only">Toggle responsive design mode</span>
-                                <svg width="42" height="36" viewBox="-8 -7 42 36" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={layoutClass('responsive')}>
-                                    <path d="M15 19h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H4a1 1 0 0 0-1 1" fill="none"></path><path d="M12 17V9a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h5a2 2 0 0 0 2-2Z"></path></svg>
-                            </button>
-                        </div>
-                        <button className={"btn w-fit"} onClick={save}>save</button>
-                        <button className={"btn w-fit"} onClick={share}>share</button>
-                    </div>
-                    <Modal open={authModal} onClose={() => setAuthModal(false)}>
-                        <AuthForm allowRegister={true} next={'/app/chat'} />
-                    </Modal>
-                    <div className="dropdown dropdown-end">
-                        <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
-                            <div className="w-10 rounded-full">
-                                <img alt="Tailwind CSS Navbar component" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-                            </div>
-                        </div>
-                        <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-                            <li>
-                                <a className="justify-between">
-                                    Profile
-                                    <span className="badge">New</span>
-                                </a>
-                            </li>
-                            <li><a>Settings</a></li>
-                            <li><a>Logout</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
             <div ref={ref} className={`flex space-x-3 ${editorLayout[state.layout].container}`}>
                 <div className={`flex ${editorLayout[state.layout].editor}`}>
                     <Tabs className={'h-full w-full'} sources={{
@@ -328,6 +285,52 @@ export const TemplatePlayground: React.FC<{
                             className={"w-full h-full"}
                         />
                     </div>
+                </div>
+            </div>
+            <div className="navbar bg-base-100">
+                <div className={"flex-1"}>
+                </div>
+                <div className="flex-none gap-2">
+                    <div className={"flex flex-row justify-end my-2 space-x-2"}>
+                        <div className="lg:flex items-center ml-6 rounded-md ring-1 ring-gray-900/5 shadow-sm dark:ring-0 dark:bg-gray-800 dark:shadow-highlight/4">
+                            <button type="button" onClick={() => {
+                                setState((prevState) => ({...prevState, layout: 'horizontal'}));
+                            }} className={'group focus:outline-none focus-visible:ring-2 rounded-md focus-visible:ring-gray-400/70 dark:focus-visible:ring-gray-500'}>
+                                <span className="sr-only">
+                                    Switch to vertical split layout
+                                </span>
+                                <svg width="42" height="36" viewBox="-8 -7 42 36" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={layoutClass('horizontal')}>
+                                    <path d="M12 3h9a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-9" fill="none"></path><path d="M3 17V5a2 2 0 0 1 2-2h7a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2Z"></path>
+                                </svg>
+                            </button>
+                            <button type="button" onClick={() => {
+                                setState((prevState) => ({...prevState, layout: 'vertical'}));
+                            }} className={'group focus:outline-none focus-visible:ring-2 rounded-md focus-visible:ring-gray-400/70 dark:focus-visible:ring-gray-500'}>
+                                <span className="sr-only">Switch to horizontal split layout</span>
+                                <svg width="42" height="36" viewBox="-8 -7 42 36" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={layoutClass('vertical')}>
+                                    <path d="M23 11V3H3v8h20Z" strokeWidth="0"></path><path d="M23 17V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2ZM22 11H4" fill="none"></path>
+                                </svg>
+                            </button>
+                            <button type="button" onClick={() => {
+                                setState((prevState) => ({...prevState, layout: 'preview-only'}));
+                            }} className={'group focus:outline-none focus-visible:ring-2 rounded-md focus-visible:ring-gray-400/70 dark:focus-visible:ring-gray-500'}>
+                                <span className="sr-only">Switch to preview-only layout</span>
+                                <svg width="42" height="36" viewBox="-8 -7 42 36" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={layoutClass('preview-only')}>
+                                    <path d="M23 17V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2Z" fill="none"></path>
+                                </svg>
+                            </button>
+                            <button type="button" onClick={() => {
+                                setState((prevState) => ({...prevState, layout: 'responsive'}));
+                            }} className={'group focus:outline-none focus-visible:ring-2 rounded-md focus-visible:ring-gray-400/70 dark:focus-visible:ring-gray-500'}>
+                                <span className="sr-only">Toggle responsive design mode</span>
+                                <svg width="42" height="36" viewBox="-8 -7 42 36" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={layoutClass('responsive')}>
+                                    <path d="M15 19h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H4a1 1 0 0 0-1 1" fill="none"></path><path d="M12 17V9a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h5a2 2 0 0 0 2-2Z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    {/*<Modal open={authModal} onClose={() => setAuthModal(false)}>*/}
+                    {/*    <AuthForm allowRegister={true} next={'/app/chat'} />*/}
+                    {/*</Modal>*/}
                 </div>
             </div>
         </div>

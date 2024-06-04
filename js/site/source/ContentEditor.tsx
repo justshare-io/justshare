@@ -108,28 +108,6 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         }
     }, [content]);
 
-    const setEditorContent = (content: Content) => {
-        setTimeout(async () => {
-            const c = await getContent(content);
-            editor.replaceBlocks(editor.document, c);
-        });
-    };
-
-    const getContent = async (c: Content) => {
-        switch (c.type.case) {
-            case 'post':
-                // TODO breadchris remove
-                if (c.type.value.content) {
-                    return await editor.tryParseHTMLToBlocks(c.type.value.content);
-                }
-                if (!c.type.value.blocks) {
-                    return [];
-                }
-                return JSON.parse(c.type.value.blocks);
-        }
-        return []
-    }
-
     useEffect(() => {
         // TODO breadchris handle editor updates independently since content will be updated every editor change
         if (newContent) {
@@ -150,81 +128,11 @@ export const ContentEditor: React.FC<{}> = ({}) => {
         }
     }, [selectedContent]);
 
-    const addTag = async (tag: string) => {
-        if (!content) {
-            return;
-        }
-        editContent(new Content({
-            ...content,
-            tags: [...content.tags, tag],
-        }));
-    }
-
-    const removeTag = async (tag: string) => {
-        if (!content) {
-            return;
-        }
-        editContent(new Content({
-            ...content,
-            tags: content.tags.filter((t) => t !== tag),
-        }));
-    }
-
-    function scrollToMakeBottomVisible(element: Element): void {
-        const elementBottomPosition = element.getBoundingClientRect().bottom;
-        const viewportHeight = window.innerHeight;
-
-        const navHeight = document.querySelector('.btm-nav')?.scrollHeight;
-        if (!navHeight) {
-            return;
-        }
-
-        if (elementBottomPosition > (viewportHeight - navHeight)) {
-            const scrollAmount = elementBottomPosition - viewportHeight + navHeight;
-            // TODO breadchris unexpected scrolls when the page is not at the bottom
-            // window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
-        }
-    }
-
-    const editor = useCreateBlockNote({
-        schema,
-    });
-
     useEffect(() => {
         if (content) {
             setEditorContent(content);
         }
     }, []);
-
-    const onEditorContentChange = async () => {
-        if (!editor) {
-            return;
-        }
-        // TODO breadchris when the editor loads, a few changes are made that would otherwise cause the editor to scroll to the bottom
-        const tryToScroll = (state: {initialChanges: number}) => {
-            const blockId = editor.getTextCursorPosition().block.id;
-            const e = document.querySelector(`[data-id="${blockId}"]`);
-            if (state.initialChanges < 1 && editor.getTextCursorPosition().block.content?.length == 0) {
-                return state.initialChanges + 1;
-            } else {
-                if (state.initialChanges >= 1 && e) {
-                    scrollToMakeBottomVisible(e);
-                }
-            }
-            return state.initialChanges;
-        }
-
-        const newEditor = {
-            blocks: JSON.stringify(editor.document),
-            html: await editor.blocksToHTMLLossy(editor.document),
-        };
-        localStorage.setItem(editorContent, newEditor.blocks);
-        setState((state) => ({
-            ...state,
-            editor: newEditor,
-            initialChanges: tryToScroll(state),
-        }));
-    };
 
     useEffect(() => {
         // Define a type for touch points to store the start and end positions of a touch
@@ -283,6 +191,98 @@ export const ContentEditor: React.FC<{}> = ({}) => {
             document.removeEventListener('touchend', handleTouchEnd);
         };
     }, []);
+
+    const setEditorContent = (content: Content) => {
+        setTimeout(async () => {
+            const c = await getContent(content);
+            editor.replaceBlocks(editor.document, c);
+        });
+    };
+
+    const getContent = async (c: Content) => {
+        switch (c.type.case) {
+            case 'post':
+                // TODO breadchris remove
+                if (c.type.value.content) {
+                    return await editor.tryParseHTMLToBlocks(c.type.value.content);
+                }
+                if (!c.type.value.blocks) {
+                    return [];
+                }
+                return JSON.parse(c.type.value.blocks);
+        }
+        return []
+    }
+
+    const addTag = async (tag: string) => {
+        if (!content) {
+            return;
+        }
+        editContent(new Content({
+            ...content,
+            tags: [...content.tags, tag],
+        }));
+    }
+
+    const removeTag = async (tag: string) => {
+        if (!content) {
+            return;
+        }
+        editContent(new Content({
+            ...content,
+            tags: content.tags.filter((t) => t !== tag),
+        }));
+    }
+
+    function scrollToMakeBottomVisible(element: Element): void {
+        const elementBottomPosition = element.getBoundingClientRect().bottom;
+        const viewportHeight = window.innerHeight;
+
+        const navHeight = document.querySelector('.btm-nav')?.scrollHeight;
+        if (!navHeight) {
+            return;
+        }
+
+        if (elementBottomPosition > (viewportHeight - navHeight)) {
+            const scrollAmount = elementBottomPosition - viewportHeight + navHeight;
+            // TODO breadchris unexpected scrolls when the page is not at the bottom
+            // window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+        }
+    }
+
+    const editor = useCreateBlockNote({
+        schema,
+    });
+
+    const onEditorContentChange = async () => {
+        if (!editor) {
+            return;
+        }
+        // TODO breadchris when the editor loads, a few changes are made that would otherwise cause the editor to scroll to the bottom
+        const tryToScroll = (state: {initialChanges: number}) => {
+            const blockId = editor.getTextCursorPosition().block.id;
+            const e = document.querySelector(`[data-id="${blockId}"]`);
+            if (state.initialChanges < 1 && editor.getTextCursorPosition().block.content?.length == 0) {
+                return state.initialChanges + 1;
+            } else {
+                if (state.initialChanges >= 1 && e) {
+                    scrollToMakeBottomVisible(e);
+                }
+            }
+            return state.initialChanges;
+        }
+
+        const newEditor = {
+            blocks: JSON.stringify(editor.document),
+            html: await editor.blocksToHTMLLossy(editor.document),
+        };
+        localStorage.setItem(editorContent, newEditor.blocks);
+        setState((state) => ({
+            ...state,
+            editor: newEditor,
+            initialChanges: tryToScroll(state),
+        }));
+    };
 
     const contentFromForm = (): Content|undefined => {
         if (!formControl) {
@@ -551,7 +551,7 @@ const ContentTypeEditor: React.FC<{
         if (content) {
             switch (content.type.case) {
                 case 'page':
-                    return <TemplatePlayground />
+                    return <TemplatePlayground page={content.type.value} />
                 case 'chatgptConversation':
                     return <ChatGPTConversationEditor
                         className={'space-y-2'}

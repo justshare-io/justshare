@@ -12,6 +12,7 @@ import {Admin} from "@/admin/Admin";
 import {TemplatePlayground} from "@/source/editors/TemplatePlayground";
 import {Group} from "@/home/Group";
 import {WebsiteEditor} from "@/source/editors/WebsiteEditor";
+import {CodeEditor} from "@/source/editors/CodeEditor";
 
 const AppRoutes = () => {
     const commonRoutes = [
@@ -19,6 +20,7 @@ const AppRoutes = () => {
         { path: '/app/content', element: <Home /> },
         { path: '/app/web', element: <WebsiteEditor /> },
         { path: '/app/web/:id', element: <WebsiteEditor />},
+        { path: '/app/code', element: <CodeEditor /> },
         { path: '/app/group/:groupID', element: <Group /> },
         { path: '/app/group/join/:secret', element: <Join /> },
         { path: '/app/chat', element: <ChatPage /> },

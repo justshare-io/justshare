@@ -184,12 +184,13 @@ message Content {
     browser.History browser_history = 12;
     AudioVideo audio_video = 13;
     Page page = 14;
+    Code code = 15;
   };
 }
 
-message Page {
-  string html = 1;
-  string data = 2;
+message Code {
+  string code = 1;
+  string name = 2;
 }
 
 message FileUploadResponse {
@@ -325,6 +326,11 @@ message Site {
 message Route {
   string path = 1;
   Page page = 2;
+}
+
+message Page {
+  string html = 1;
+  string data = 2;
 }
 
 message Section {

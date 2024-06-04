@@ -1,19 +1,43 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {TemplatePlayground} from "@/source/editors/TemplatePlayground";
-import {Contents, Page, Site} from "@/rpc/content/content_pb";
+import {Content, Contents, Page, Route, Site} from "@/rpc/content/content_pb";
 import {useParams} from "react-router";
 import {contentService} from "@/service";
 import toast from "react-hot-toast";
+import {useAuth} from "@/auth/state";
+import {Modal} from "@/components/modal";
+import {AuthForm} from "@/auth/AuthForm";
+import {parseRoutes, RouteTreeView} from "@/source/editors/RouteTree";
 
 export const WebsiteEditor = () => {
     const { id } = useParams();
 
+    const { user} = useAuth();
+    const [authModal, setAuthModal] = useState(false);
+
     const [state, setState] = React.useState<{
+        content: Content
         site: Site
-        selectedRoute?: string
+        selectedRoute: Route | undefined,
+        newPath: string,
     }>({
-        site: new Site(),
-        selectedRoute: undefined
+        content: new Content({
+            type: {
+                case: 'site',
+                value: new Site({}),
+            },
+        }),
+        site: new Site({
+            routes: [new Route({
+                path: '/',
+                page: new Page({
+                    html: '',
+                    data: '',
+                }),
+            })],
+        }),
+        selectedRoute: undefined,
+        newPath: "/",
     });
 
     useEffect(() => {
@@ -29,14 +53,17 @@ export const WebsiteEditor = () => {
                     return;
                 }
                 const c = res.storedContent[0].content;
-                if (c !== undefined && c.type.case === 'page' && c.type.value !== undefined) {
-                    const html = c.type.value.html;
-                    const data = c.type.value.data;
-                    setState((prevState) => ({
-                        ...prevState,
-                        page: new Page({html, data}),
-                        content: c,
-                    }));
+                switch (c?.type?.case) {
+                    case 'site':
+                        const site = c.type.value;
+                        setState((prevState) => ({
+                            ...prevState,
+                            site,
+                            content: c,
+                        }));
+                        break;
+                    default:
+                        break;
                 }
             } catch (e) {
                 console.error('failed to get sources', e);
@@ -50,43 +77,87 @@ export const WebsiteEditor = () => {
             return;
         }
         try {
-            state.content.type.value = state.page;
+            state.content.type.value = state.site;
             const res = await contentService.save(new Contents({
                 content: state.content,
             }));
             toast.success("Saved");
 
             window.history.pushState({}, '', `/app/web/${res.content?.id}`);
-            if (!res.content) {
+            const c = res.content;
+            if (c === undefined) {
                 return;
             }
-            setState((prevState) => ({ ...prevState, content: res.content }));
+            setState((prevState) => ({ ...prevState, content: c }));
         } catch (error) {
             console.error(error);
             toast.error("Failed to save content: " + error);
         }
     }
-    const route = state.site.routes.find(r => r.path === state.selectedRoute);
+
     return (
         <div className={"p-5 flex flex-row w-full"}>
-            <div className={"flex"}>
-                <ul className="menu bg-base-200 w-56 rounded-box">
-                    {state.site.routes.map(r => {
-                        return <li key={r.path}><a>{r.path}</a></li>
-                    })}
-                    <li><button className={"btn"} onClick={() => {
-                        setState({
-                            site: new Site({
-                                ...state.site,
-                                routes: [...state.site.routes, {path: '/new'}]
+            <Modal open={authModal} onClose={() => setAuthModal(false)}>
+                <AuthForm allowRegister={true} next={'/app/chat'} />
+            </Modal>
+            <div className={"flex flex-col"}>
+                {state.site.routes && (
+                    <>
+                        <div className={"flex flex-row w-full"}>
+                            <input className={"flex input"} onChange={(e) => {
+                                setState({
+                                    ...state,
+                                    newPath: e.target.value
+                                })
+                            }} value={state.newPath} />
+                            <button className={"btn"} onClick={() => {
+                                setState({
+                                    ...state,
+                                    site: new Site({
+                                        routes: [
+                                            ...state.site.routes,
+                                            new Route({
+                                                path: state.newPath,
+                                                page: new Page(),
+                                            })
+                                        ]
+
+                                })
+                            })}}>new path</button>
+                        </div>
+                        <RouteTreeView routes={parseRoutes(state.site.routes)} onRouteClick={(r) => {
+                            setState({
+                                ...state,
+                                selectedRoute: r.contentRoute,
                             })
-                        })
-                    }}>add</button></li>
-                </ul>
+                        }} />
+                    </>
+                )}
             </div>
-            <div className={"flex w-full"}>
-                <TemplatePlayground />
-            </div>
+            {state.selectedRoute === undefined || state.selectedRoute.page === undefined ? (
+                <div className={"flex"}>
+                    <div className={"flex flex-col w-full"}>
+                        <h1 className={"text-2xl"}>No route selected</h1>
+                    </div>
+                </div>
+            ) : (
+                <div className={"flex flex-col w-full"}>
+                    <div className={"p-5 flex flex-row w-full space-x-2"}>
+                        <input className={"text-2xl"} onChange={(e) => {
+                        }} value={state.selectedRoute.path}></input>
+                        <span className={"badge"}>page</span>
+                        <span className={"badge"}>layout</span>
+                        <button className={"btn"} onClick={save}>save</button>
+                    </div>
+                    <div className={"flex w-full"}>
+                        <TemplatePlayground page={state.selectedRoute.page} onChange={(p) => {
+                            if (state.selectedRoute !== undefined) {
+                                state.selectedRoute.page = p;
+                            }
+                        }} />
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

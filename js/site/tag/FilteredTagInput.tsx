@@ -27,11 +27,13 @@ export const FilteredTagInput: React.FC<{
     selectedTag: string,
     setSelectedTag: (tag: string) => void,
     onAddTag: (tag: string) => void,
+    hideSuggestions?: boolean
 }> = ({
-          selectedTag,
-          setSelectedTag,
-          onAddTag,
-      }) => {
+    selectedTag,
+    setSelectedTag,
+    onAddTag,
+    hideSuggestions,
+}) => {
     const { tags, getTags } = useTags();
 
     useEffect(() => {
@@ -71,15 +73,17 @@ export const FilteredTagInput: React.FC<{
                 <button onClick={() => onAddTag(selectedTag)} className="btn btn-square btn-primary">
                     <TagIcon className={"h-6 w-6"} />
                 </button>
-                <div className={"flex flex-row space-x-2 items-center"}>
-                    {debouncedOptions.map((option) => (
-                        <div className={"badge badge-outline"} key={option} onClick={() => {
-                            onAddTag(option);
-                        }}>
-                            {option}
-                        </div>
-                    ))}
-                </div>
+                {!hideSuggestions && (
+                    <div className={"flex flex-row space-x-2 items-center"}>
+                        {debouncedOptions.map((option) => (
+                            <div className={"badge badge-outline"} key={option} onClick={() => {
+                                onAddTag(option);
+                            }}>
+                                {option}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
             {/*<ul className={`flex p-2 shadow menu dropdown-open z-[1] bg-base-100 rounded-box w-52`}>*/}
             {/*    {debouncedOptions.map((option) => (*/}

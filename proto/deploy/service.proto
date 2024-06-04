@@ -2,11 +2,14 @@ syntax = "proto3";
 
 package deploy;
 
+import "content/content.proto";
+
 service DeployService {
   rpc Deploy (DeployRequest) returns (DeployResponse);
 }
 
 message DeployRequest {
+  content.Code code = 1;
 }
 
 message DeployResponse {

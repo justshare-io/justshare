@@ -1211,6 +1211,12 @@ export class Content extends Message<Content> {
      */
     value: Page;
     case: "page";
+  } | {
+    /**
+     * @generated from field: content.Code code = 15;
+     */
+    value: Code;
+    case: "code";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Content>) {
@@ -1234,6 +1240,7 @@ export class Content extends Message<Content> {
     { no: 12, name: "browser_history", kind: "message", T: History, oneof: "type" },
     { no: 13, name: "audio_video", kind: "message", T: AudioVideo, oneof: "type" },
     { no: 14, name: "page", kind: "message", T: Page, oneof: "type" },
+    { no: 15, name: "code", kind: "message", T: Code, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Content {
@@ -1254,45 +1261,45 @@ export class Content extends Message<Content> {
 }
 
 /**
- * @generated from message content.Page
+ * @generated from message content.Code
  */
-export class Page extends Message<Page> {
+export class Code extends Message<Code> {
   /**
-   * @generated from field: string html = 1;
+   * @generated from field: string code = 1;
    */
-  html = "";
+  code = "";
 
   /**
-   * @generated from field: string data = 2;
+   * @generated from field: string name = 2;
    */
-  data = "";
+  name = "";
 
-  constructor(data?: PartialMessage<Page>) {
+  constructor(data?: PartialMessage<Code>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "content.Page";
+  static readonly typeName = "content.Code";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "html", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "data", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Page {
-    return new Page().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Code {
+    return new Code().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Page {
-    return new Page().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Code {
+    return new Code().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Page {
-    return new Page().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Code {
+    return new Code().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Page | PlainMessage<Page> | undefined, b: Page | PlainMessage<Page> | undefined): boolean {
-    return proto3.util.equals(Page, a, b);
+  static equals(a: Code | PlainMessage<Code> | undefined, b: Code | PlainMessage<Code> | undefined): boolean {
+    return proto3.util.equals(Code, a, b);
   }
 }
 
@@ -2371,6 +2378,49 @@ export class Route extends Message<Route> {
 
   static equals(a: Route | PlainMessage<Route> | undefined, b: Route | PlainMessage<Route> | undefined): boolean {
     return proto3.util.equals(Route, a, b);
+  }
+}
+
+/**
+ * @generated from message content.Page
+ */
+export class Page extends Message<Page> {
+  /**
+   * @generated from field: string html = 1;
+   */
+  html = "";
+
+  /**
+   * @generated from field: string data = 2;
+   */
+  data = "";
+
+  constructor(data?: PartialMessage<Page>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "content.Page";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "html", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "data", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Page {
+    return new Page().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Page {
+    return new Page().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Page {
+    return new Page().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Page | PlainMessage<Page> | undefined, b: Page | PlainMessage<Page> | undefined): boolean {
+    return proto3.util.equals(Page, a, b);
   }
 }
 

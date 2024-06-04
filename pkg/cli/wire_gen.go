@@ -127,7 +127,7 @@ func Wire() (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	deployService := deploy.NewService(deployConfig, builder)
+	deployService := deploy.NewService(deployConfig, builder, sessionManager)
 	apihttpServer := server.New(contentConfig, service, builder, sessionManager, userService, chatService, eventService, kubesService, deployService)
 	app := NewApp(logLog, apihttpServer, discordSession)
 	return app, nil

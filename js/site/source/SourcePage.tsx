@@ -74,6 +74,7 @@ export const SourcePage: React.FC = () => {
                 <div className="flex-none">
                     <ul className="menu menu-horizontal px-1">
                         <li><a onClick={() => window.location.href = '/app/web'}>web</a></li>
+                        <li><a onClick={() => window.location.href = '/app/code'}>code</a></li>
                         <li><a onClick={handleGroups}>groups</a></li>
                         <li><a onClick={logout}>logout</a></li>
                     </ul>
